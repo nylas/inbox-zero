@@ -1,0 +1,33 @@
+{
+  "name": "inbox-zero",
+  "version": "1.0.0",
+  "description": "Automate Your Way to Inbox Zero With Nylas",
+  "main": "index.js",
+  "scripts": {
+    "dev": "next",
+    "build": "next build",
+    "start": "next start",
+    "prettier": "prettier \"./{pages,components}/**/*.{js,css}\" --write"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nylas/inbox-zero.git"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/nylas/inbox-zero/issues"
+  },
+  "homepage": "https://github.com/nylas/inbox-zero#readme",
+  "dependencies": {
+    "classnames": "^2.2.6",
+    "next": "^9.3.0",
+    "next-images": "^1.3.1",
+    "normalize.css": "^8.0.1",
+    "prop-types": "^15.7.2",
+    "react": "^16.13.0",
+    "react-dom": "^16.13.0"
+  },
+  "devDependencies": {
+    "prettier": "1.19.1"
+  }
+}

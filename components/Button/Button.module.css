@@ -1,0 +1,27 @@
+.Button {
+  font-weight: bold;
+  color: #000000;
+  background: #00e5bf;
+  border: 0;
+  text-transform: uppercase;
+  min-width: 180px;
+  cursor: pointer;
+  transition: .15s;
+}
+
+.Button:hover {
+  background: #18F9D4;
+}
+
+.Button.primary {
+  font-size: 16px;
+  padding: 18px 12px;
+  letter-spacing: 0.53px;
+  width: 100%;
+}
+
+.Button.secondary {
+  font-size: 13px;
+  padding: 8px 12px;
+  letter-spacing: 0.43px;
+}

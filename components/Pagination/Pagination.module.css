@@ -1,0 +1,16 @@
+.Pagination {
+  margin-top: 32px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.Button {
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+
+.Button.disabled {
+  opacity: 0.2;
+}

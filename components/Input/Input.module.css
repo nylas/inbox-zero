@@ -1,0 +1,14 @@
+.Input {
+  width: 100%;
+  font-size: 16px;
+  line-height: 16px;
+  letter-spacing: 0.533333px;
+  color: #000000;
+  border: 0;
+  padding: 8px;
+  border-bottom: 1px solid #000000;
+}
+
+.Input::placeholder {
+  color: #AAAAAA;
+}
