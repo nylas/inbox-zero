@@ -1,0 +1,56 @@
+/** Contents */
+
+.Details {
+}
+
+.Contents {
+  padding: 12px 24px 12px;
+}
+
+.Subject {
+  font-size: 24px;
+  padding: 0 24px;
+}
+
+.AttachmentWrapper {
+  padding: 32px 0 0 0;
+}
+
+.Attachment {
+  display: inline-block;
+  border: 1px solid #9a9a9a;
+  box-sizing: border-box;
+  border-radius: 5px;
+  padding: 8px 32px;
+  color: inherit;
+  text-decoration: none;
+  margin: 0 10px 10px 0;
+}
+
+.Attachment:hover {
+  background: #e6e6e6;
+}
+
+/** Sidebar content */
+
+.Actions {
+  margin: 0;
+  padding: 0;
+}
+
+.Actions__image {
+  margin-right: 24px;
+  width: 30px;
+}
+
+.Action {
+  margin-top: 32px;
+  display: flex;
+  align-items: center;
+  font-weight: 600;
+}
+
+.Action.enabled {
+  font-weight: normal;
+  color: #585858;
+}

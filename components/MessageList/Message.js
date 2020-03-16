@@ -1,72 +1,57 @@
+import Link from "next/link";
 import PropTypes from "prop-types";
 import classnames from "classnames";
 import styles from "./MessageList.module.css";
 import attachment from "../../assets/attachment.svg";
+import formatDate from "../../utils/formatDate";
 
 function Message({
-  status,
+  id,
+  active,
   fromName,
-  subject,
-  preview,
+  fromEmailAddress,
   date,
-  hasAttachment = false
+  hasAttachments = false
 }) {
   return (
-    <tr className={classnames(styles.Message, styles[status])}>
-      <td className={styles.Message__cell}>
-        <div className={styles.Message__icon}>{fromName.charAt(0)}</div>
-      </td>
-      <td
-        className={classnames(styles.Message__fromName, styles.Message__cell)}
-      >
-        {fromName}
-      </td>
-      <td className={classnames(styles.Message__subject, styles.Message__cell)}>
-        {subject}
-        {hasAttachment && (
-          <img
-            className={styles.Message__hasAttachment}
-            src={attachment}
-            alt="email has an attachment"
-          />
+    <Link href="/messages/[id]" as={`/messages/${id}`}>
+      <a
+        className={classnames(
+          styles.Message,
+          styles[active ? "active" : "inactive"]
         )}
-      </td>
-      <td className={classnames(styles.Message__preview, styles.Message__cell)}>
-        {preview}
-      </td>
-      <td className={classnames(styles.Message__date, styles.Message__cell)}>
-        {formatDate(new Date(date))}
-      </td>
-    </tr>
+      >
+        <span className={classnames(styles.Message__iconCell)}>
+          <span className={styles.Message__icon}>
+            {fromName.charAt(0).toUpperCase()}
+          </span>
+        </span>
+        <span className={classnames(styles.Message__fromName)}>{fromName}</span>
+        <span className={classnames(styles.Message__fromEmailAddress)}>
+          {fromEmailAddress}
+          {hasAttachments && (
+            <img
+              className={styles.Message__hasAttachments}
+              src={attachment}
+              alt="email has an attachment"
+            />
+          )}
+        </span>
+        <span className={classnames(styles.Message__date)}>
+          {formatDate(new Date(date))}
+        </span>
+      </a>
+    </Link>
   );
 }
 
 Message.propTypes = {
-  status: PropTypes.oneOf(["read", "unread"]).isRequired,
+  id: PropTypes.string.isRequired,
+  active: PropTypes.bool.isRequired,
   fromName: PropTypes.string.isRequired,
-  subject: PropTypes.string.isRequired,
-  preview: PropTypes.string.isRequired,
-  date: PropTypes.number.isRequired,
-  hasAttachment: PropTypes.bool
+  fromEmailAddress: PropTypes.string.isRequired,
+  date: PropTypes.string.isRequired,
+  hasAttachments: PropTypes.bool
 };
-
-function formatDate(date) {
-  const monthNames = [
-    "Jan",
-    "Feb",
-    "Mar",
-    "Apr",
-    "May",
-    "Jun",
-    "Jul",
-    "Aug",
-    "Sep",
-    "Oct",
-    "Nov",
-    "Dec"
-  ];
-
-  return `${monthNames[date.getMonth()]} ${date.getDate()}`;
-}
 
 export default Message;

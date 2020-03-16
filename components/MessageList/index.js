@@ -1,16 +1,22 @@
 import PropTypes from "prop-types";
 import styles from "./MessageList.module.css";
 import Message from "./Message";
+import classnames from "classnames";
 
-function MessageList({ children }) {
+function MessageList({ children, divideTop = false }) {
   return (
-    <table className={styles.MessageList}>
-      <tbody>{children}</tbody>
-    </table>
+    <div
+      className={classnames(styles.MessageList, {
+        [styles.divideTop]: divideTop
+      })}
+    >
+      {children}
+    </div>
   );
 }
 
 MessageList.propTypes = {
+  divideTop: PropTypes.bool,
   children: PropTypes.arrayOf(Message).isRequired
 };
 

@@ -1,0 +1,18 @@
+.InboxOverview {
+  font-size: 38px;
+}
+
+.UnreadCount {
+  font-size: 66px;
+  font-weight: bold;
+}
+
+.SenderCount {
+  font-weight: bold;
+}
+
+.Pagination {
+  margin-top: 32px;
+  display: flex;
+  justify-content: space-between;
+}

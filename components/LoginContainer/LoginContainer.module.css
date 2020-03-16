@@ -4,7 +4,6 @@
   height: 100vh;
 }
 
-
 .Sidebar {
   background: #000000;
   display: flex;
@@ -14,7 +13,7 @@
 }
 
 .LogosDivider {
-  background: #FFFFFF;
+  background: #ffffff;
   width: 22px;
   height: 2px;
   margin: 100px 0;
@@ -29,5 +28,4 @@
 .Main__content {
   width: 100%;
   max-width: 450px;
-
 }

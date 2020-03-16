@@ -1,14 +1,14 @@
-.MessageList {
+.ThreadList {
   width: 100%;
 }
 
-.Message {
+.Thread {
   border: 1px solid transparent;
   border-top-color: #979797;
   cursor: pointer;
   transition: 0.15s;
   display: grid;
-  grid-template-columns: 40px 1fr 3fr 100px;
+  grid-template-columns: 40px 1fr 1fr 1fr 100px;
   grid-template-rows: auto;
   padding: 24px;
   line-height: 1.25em;
@@ -17,33 +17,37 @@
   outline: 0;
 }
 
-.Message.active {
-  cursor: auto;
-}
-
-.MessageList:not(.divideTop) .Message:first-child {
+.Thread:first-child {
   border-top-color: transparent;
 }
 
-.Message.inactive:last-child {
+.Thread:last-child {
   border-bottom-color: #979797;
 }
 
-.MessageList .Message.inactive:hover,
-.MessageList .Message.inactive:focus {
+.Thread:hover,
+.Thread:focus {
   border: 1px solid #d8d8d8;
   box-shadow: 0px 0px 14px rgba(201, 201, 201, 0.5);
 }
 
-.Message.inactive:hover + .Message,
-.Message.inactive:focus + .Message {
+.Thread:hover + .Thread,
+.Thread:focus + .Thread {
   border-top-color: transparent;
 }
 
-.Message__iconCell {
+.Thread.unread {
+  font-weight: bold;
 }
 
-.Message__icon {
+.Thread.read {
+  font-weight: normal;
+}
+
+.Thread__iconCell {
+}
+
+.Thread__icon {
   background: #00e5bf;
   border-radius: 50%;
   height: 40px;
@@ -55,23 +59,35 @@
   display: block;
 }
 
-.Message__fromName {
+.Thread__fromName {
   padding: 8px 8px 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.Message__fromEmailAddress {
+.Thread__subject {
   padding: 8px 8px 0;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  display: -webkit-box;
 }
 
-.Message__hasAttachments {
-  margin: -6px 0 0 32px;
-  vertical-align: top;
+.Thread__hasAttachment {
+  margin-top: 12px;
 }
 
-.Message__date {
+.Thread__snippet {
+  padding: 8px 8px 0;
+  font-weight: normal;
+  color: #848484;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.Thread__date {
   padding: 8px 8px 0;
   font-weight: normal;
   color: #848484;

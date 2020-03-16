@@ -2,16 +2,3 @@
   background: #eaeaea;
   padding: 64px;
 }
-
-.InboxOverview {
-  font-size: 38px;
-}
-
-.UnreadCount {
-  font-size: 66px;
-  font-weight: bold;
-}
-
-.SenderCount {
-  font-weight: bold;
-}

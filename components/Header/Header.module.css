@@ -19,6 +19,7 @@
   height: 20px;
   width: 2px;
   margin: 0 40px;
+  display: block;
 }
 
 .Profile {

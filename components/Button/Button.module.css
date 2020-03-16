@@ -6,11 +6,13 @@
   text-transform: uppercase;
   min-width: 180px;
   cursor: pointer;
-  transition: .15s;
+  transition: 0.15s;
+  text-align: center;
+  text-decoration: none;
 }
 
 .Button:hover {
-  background: #18F9D4;
+  background: #18f9d4;
 }
 
 .Button.primary {
