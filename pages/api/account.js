@@ -6,11 +6,15 @@ import protect from "../../utils/middleware/protect";
  */
 export default protect(async (req, res) => {
   try {
-    const unreadCount = await req.nylas.messages.count({ unread: true });
+    const unreadCount = await req.nylas.messages.count({
+      in: "inbox",
+      unread: true
+    });
 
     res.status(200).json({
       name: req.account.name,
-      email: req.account.email,
+      emailAddress: req.account.emailAddress,
+      organizationUnit: req.account.organizationUnit,
       unreadCount: unreadCount
     });
   } catch (err) {
