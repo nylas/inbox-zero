@@ -22,9 +22,10 @@ function EmptyState() {
 }
 
 function MessageList({ messages, currentPage, currentSearch }) {
-  const previousPage = currentPage > 1 ? currentPage - 1 : 1
-  const nextPage = currentPage + 1
-  const maybeSearch = currentSearch.length > 0 ? `&search=${currentSearch}` : ''
+  const previousPage = currentPage > 1 ? currentPage - 1 : 1;
+  const nextPage = currentPage + 1;
+  const maybeSearch =
+    currentSearch.length > 0 ? `&search=${currentSearch}` : "";
 
   return (
     <Fragment>
@@ -43,7 +44,11 @@ function MessageList({ messages, currentPage, currentSearch }) {
       </List>
       <div className={styles.Pagination}>
         <Link href={`/?page=${previousPage}${maybeSearch}`}>
-          <a className={classnames(styles.Pagination__button, { [styles.disabled]: currentPage <= 1 })}>
+          <a
+            className={classnames(styles.Pagination__button, {
+              [styles.disabled]: currentPage <= 1
+            })}
+          >
             <img src={chevronLeftIcon} alt="previous" />
           </a>
         </Link>
@@ -60,11 +65,16 @@ function MessageList({ messages, currentPage, currentSearch }) {
 
 export const getServerSideProps = withAuth(async context => {
   const currentPage = parseInt(context.query.page) || 1;
-  const search = context.query.search || '';
+  const search = context.query.search || "";
   const messages = await (
-    await fetch(`http://localhost:3000/api/messages?page=${currentPage}&search=${search}`, {
-      headers: context.req ? { cookie: context.req.headers.cookie } : undefined
-    })
+    await fetch(
+      `http://localhost:3000/api/messages?page=${currentPage}&search=${search}`,
+      {
+        headers: context.req
+          ? { cookie: context.req.headers.cookie }
+          : undefined
+      }
+    )
   ).json();
 
   return {
@@ -77,7 +87,12 @@ export const getServerSideProps = withAuth(async context => {
   };
 });
 
-export default function Inbox({ account, messages, currentPage, currentSearch }) {
+export default function Inbox({
+  account,
+  messages,
+  currentPage,
+  currentSearch
+}) {
   const [search, setSearch] = useState(currentSearch);
 
   return (
@@ -97,19 +112,33 @@ export default function Inbox({ account, messages, currentPage, currentSearch })
           <br />
           unread emails
         </p>
-        <Button href="/" variant="primary">Refresh</Button>
-        <form onSubmit={(event) => {
-          event.preventDefault()
-          Router.push(`/?search=${encodeURIComponent(search)}`)
-        }} className={styles.SearchForm}>
-          <Input placeholder={'Search'} value={search} onChange={({ target }) => setSearch(target.value)} type="search" />
+        <Button href="/" variant="primary">
+          Refresh
+        </Button>
+        <form
+          onSubmit={event => {
+            event.preventDefault();
+            Router.push(`/?search=${encodeURIComponent(search)}`);
+          }}
+          className={styles.SearchForm}
+        >
+          <Input
+            placeholder={"Search"}
+            value={search}
+            onChange={({ target }) => setSearch(target.value)}
+            type="search"
+          />
         </form>
       </Sidebar>
       <Main>
         {messages.length === 0 ? (
           <EmptyState />
         ) : (
-          <MessageList messages={messages} currentPage={currentPage} currentSearch={currentSearch} />
+          <MessageList
+            messages={messages}
+            currentPage={currentPage}
+            currentSearch={currentSearch}
+          />
         )}
       </Main>
     </InboxContainer>
