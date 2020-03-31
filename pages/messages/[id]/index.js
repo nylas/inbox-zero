@@ -1,3 +1,4 @@
+import { useState } from "react";
 import fetch from "isomorphic-unfetch";
 import Head from "next/head";
 import InboxContainer from "../../../components/InboxContainer";
@@ -14,7 +15,8 @@ import doubleFlagIcon from "../../../assets/double_flag.svg";
 import chevronLeftIcon from "../../../assets/chevron_left.svg";
 import chevronRightIcon from "../../../assets/chevron_right.svg";
 import withAuth from "../../../utils/withAuth";
-import classnames from "classnames"
+import classnames from "classnames";
+import Frame, { FrameContextConsumer } from "react-frame-component";
 
 export const getServerSideProps = withAuth(async context => {
   const thread = await (
@@ -28,19 +30,21 @@ export const getServerSideProps = withAuth(async context => {
       account: context.account,
       thread
     }
-  }
+  };
 });
 
-export default function detailsPage({ thread }) {
-  const activeIndex = thread.messages.findIndex(({ active }) => active === true)
-  const message = thread.messages[activeIndex]
-  const prevMessages = thread.messages.slice(0, activeIndex+1)
-  const nextMessages = thread.messages.slice(activeIndex+1)
+export default function detailsPage({ account, thread }) {
+  const activeIndex = thread.messages.findIndex(
+    ({ active }) => active === true
+  );
+  const message = thread.messages[activeIndex];
+  const prevMessages = thread.messages.slice(0, activeIndex + 1);
+  const nextMessages = thread.messages.slice(activeIndex + 1);
 
-  console.log(thread)
+  const [iframeHeight, setIframeHeight] = useState(500);
   return (
     <InboxContainer>
-      <Header />
+      <Header account={account} />
       <Sidebar>
         <Button>Reply</Button>
         <ul className={styles.Actions}>
@@ -56,13 +60,21 @@ export default function detailsPage({ thread }) {
             </span>
             <span>Add to ToDo List »</span>
           </li>
-          <li className={classnames(styles.Action, { [styles.enabled]: !thread.threadUnread })}>
+          <li
+            className={classnames(styles.Action, {
+              [styles.enabled]: !thread.threadUnread
+            })}
+          >
             <span className={styles.Actions__image}>
               <img src={flagIcon} />
             </span>
             <span>Mark as Read »</span>
           </li>
-          <li className={classnames(styles.Action, { [styles.enabled]: !thread.senderUnread })}>
+          <li
+            className={classnames(styles.Action, {
+              [styles.enabled]: !thread.senderUnread
+            })}
+          >
             <span className={styles.Actions__image}>
               <img src={doubleFlagIcon} />
             </span>
@@ -72,8 +84,8 @@ export default function detailsPage({ thread }) {
       </Sidebar>
       <Main>
         <h2 className={styles.Subject}>{message.subject}</h2>
-        <List> 
-          {prevMessages.map((message) => (
+        <List>
+          {prevMessages.map(message => (
             <List.Message
               id={message.id}
               active={message.active}
@@ -85,21 +97,34 @@ export default function detailsPage({ thread }) {
           ))}
         </List>
         <div className={styles.Contents}>
-          <div
-            dangerouslySetInnerHTML={{
-              __html: message.body
+          <Frame
+            style={{
+              width: "100%",
+              border: 0,
+              height: `${iframeHeight}px`
             }}
-          />
-          {message.hasAttachments && <div className={styles.AttachmentWrapper}>
-          {message.files.map((file) => (
-            <a href={`/api/files/${file.id}`} className={styles.Attachment}>
-              {file.filename}
-            </a>
-          ))}
-          </div>}
+            initialContent={message.body}
+          >
+            <FrameContextConsumer>
+              {({ document, window }) => {
+                if (iframeHeight === 500) {
+                  setIframeHeight(window.document.documentElement.scrollHeight);
+                }
+              }}
+            </FrameContextConsumer>
+          </Frame>
+          {message.hasAttachments && (
+            <div className={styles.AttachmentWrapper}>
+              {message.files.map(ile => (
+                <a href={`/api/files/${file.id}`} className={styles.Attachment}>
+                  {file.filename}
+                </a>
+              ))}
+            </div>
+          )}
         </div>
         <List divideTop={true}>
-          {nextMessages.map((message) => (
+          {nextMessages.map(message => (
             <List.Message
               id={message.id}
               active={message.active}
