@@ -1,5 +1,6 @@
-import { Fragment } from "react";
+import { Fragment, useState } from "react";
 import Link from "next/link";
+import Router from "next/router";
 import fetch from "isomorphic-unfetch";
 import Head from "next/head";
 import InboxContainer from "../../components/InboxContainer";
@@ -14,12 +15,17 @@ import completeIcon from "../../assets/complete.svg";
 import styles from "./index.module.css";
 import withAuth from "../../utils/withAuth";
 import classnames from "classnames";
+import Input from "../../components/Input";
 
 function EmptyState() {
   return <img src={completeIcon} alt="Inbox zero achieved!" />;
 }
 
-function MessageList({ messages, currentPage }) {
+function MessageList({ messages, currentPage, currentSearch }) {
+  const previousPage = currentPage > 1 ? currentPage - 1 : 1
+  const nextPage = currentPage + 1
+  const maybeSearch = currentSearch.length > 0 ? `&search=${currentSearch}` : ''
+
   return (
     <Fragment>
       <List>
@@ -36,13 +42,13 @@ function MessageList({ messages, currentPage }) {
         ))}
       </List>
       <div className={styles.Pagination}>
-        <Link href={`/?page=${currentPage - 1}`}>
-          <a className={classnames(styles.Pagination__button, styles.disabled)}>
+        <Link href={`/?page=${previousPage}${maybeSearch}`}>
+          <a className={classnames(styles.Pagination__button, { [styles.disabled]: currentPage <= 1 })}>
             <img src={chevronLeftIcon} alt="previous" />
           </a>
         </Link>
         <div>Page {currentPage}</div>
-        <Link href={`/?page=${currentPage + 1}`}>
+        <Link href={`/?page=${nextPage}${maybeSearch}`}>
           <a className={classnames(styles.Pagination__button)}>
             <img src={chevronRightIcon} alt="next" />
           </a>
@@ -54,8 +60,9 @@ function MessageList({ messages, currentPage }) {
 
 export const getServerSideProps = withAuth(async context => {
   const currentPage = parseInt(context.query.page) || 1;
+  const search = context.query.search || '';
   const messages = await (
-    await fetch(`http://localhost:3000/api/messages?page=${currentPage}`, {
+    await fetch(`http://localhost:3000/api/messages?page=${currentPage}&search=${search}`, {
       headers: context.req ? { cookie: context.req.headers.cookie } : undefined
     })
   ).json();
@@ -64,12 +71,15 @@ export const getServerSideProps = withAuth(async context => {
     props: {
       account: context.account,
       currentPage,
+      currentSearch: search,
       messages
     }
   };
 });
 
-export default function Inbox({ account, messages, currentPage }) {
+export default function Inbox({ account, messages, currentPage, currentSearch }) {
+  const [search, setSearch] = useState(currentSearch);
+
   return (
     <InboxContainer>
       <Head>
@@ -81,23 +91,25 @@ export default function Inbox({ account, messages, currentPage }) {
       <Header account={account} />
       <Sidebar>
         <p className={styles.InboxOverview}>
-          <span className={styles.UnreadCount}>
+          <span className={styles.InboxOverview__UnreadCount}>
             {account.unreadCount.toLocaleString()}
           </span>
           <br />
           unread emails
-          {/* <br />from{" "}<span className={styles.SenderCount}>
-          {account.senderCount.toLocaleString()}
-        </span>{" "}<br />
-        senders.*/}
         </p>
-        <Button variant="primary">Refresh</Button>
+        <Button href="/" variant="primary">Refresh</Button>
+        <form onSubmit={(event) => {
+          event.preventDefault()
+          Router.push(`/?search=${encodeURIComponent(search)}`)
+        }} className={styles.SearchForm}>
+          <Input placeholder={'Search'} value={search} onChange={({ target }) => setSearch(target.value)} type="search" />
+        </form>
       </Sidebar>
       <Main>
         {messages.length === 0 ? (
           <EmptyState />
         ) : (
-          <MessageList messages={messages} currentPage={currentPage} />
+          <MessageList messages={messages} currentPage={currentPage} currentSearch={currentSearch} />
         )}
       </Main>
     </InboxContainer>
