@@ -1,17 +1,13 @@
 import { useRouter } from "next/router";
 import Link from "next/link";
+import md5 from "md5";
 import styles from "./Header.module.css";
 import nylasLogo from "../../assets/nylas.svg";
 import inboxZeroLogo from "../../assets/inbox_zero.svg";
 import Button from "../Button";
 
-const avatar =
-  "https://www.gravatar.com/avatar/934d996cf24665d1db48e173596b8988";
-
-export default function Header() {
-  const logout = e => {
-    e.preventDefault();
-  };
+export default function Header({ account }) {
+  const avatar = `https://www.gravatar.com/avatar/${md5(account.emailAddress)}`;
 
   return (
     <header className={styles.Header}>
@@ -23,7 +19,7 @@ export default function Header() {
         </a>
       </Link>
       <div className={styles.Profile}>
-        avigoldmankid@gmail.com
+        {account.emailAddress}
         <img className={styles.Avatar} src={avatar} alt="avatar" />
         <Button variant="secondary" href="/api/revoke">
           Log out
