@@ -7,7 +7,7 @@
     "dev": "next",
     "build": "next build",
     "start": "next start",
-    "prettier": "prettier \"./{pages,components,assets}/**/*.{js,css}\" --write"
+    "pre-commit": "pretty-quick --staged"
   },
   "repository": {
     "type": "git",
@@ -37,6 +37,8 @@
     "react-frame-component": "^4.1.1"
   },
   "devDependencies": {
-    "prettier": "1.19.1"
+    "husky": "^4.2.3",
+    "prettier": "^1.19.1",
+    "pretty-quick": "^2.0.1"
   }
 }
