@@ -10,7 +10,7 @@ export default function LoginPage() {
   return (
     <LoginContainer>
       <Head>
-        <title>Inbox (100) - avigoldmankid@gmail.com</title>
+        <title>Inbox Zero | Login</title>
         <meta name="viewport" content="initial-scale=1.0, width=device-width" />
       </Head>
       <form
@@ -29,7 +29,6 @@ export default function LoginPage() {
             value={email}
             onChange={({ target }) => setEmail(target.value)}
             autoFocus
-            required
           />
         </div>
         <Button>Login</Button>
