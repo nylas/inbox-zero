@@ -6,8 +6,12 @@
   "scripts": {
     "dev": "next",
     "build": "next build",
-    "start": "next start",
-    "pre-commit": "pretty-quick --staged"
+    "start": "next start"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "pretty-quick --staged"
+    }
   },
   "repository": {
     "type": "git",
