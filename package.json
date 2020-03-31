@@ -24,6 +24,7 @@
     "ioredis": "^4.16.0",
     "isomorphic-unfetch": "^3.0.0",
     "jsonwebtoken": "^8.5.1",
+    "md5": "^2.2.1",
     "next": "^9.3.0",
     "next-images": "^1.3.1",
     "node-email-reply-parser": "^0.1.1",
@@ -32,7 +33,8 @@
     "nylas": "^4.10.0",
     "prop-types": "^15.7.2",
     "react": "^16.13.0",
-    "react-dom": "^16.13.0"
+    "react-dom": "^16.13.0",
+    "react-frame-component": "^4.1.1"
   },
   "devDependencies": {
     "prettier": "1.19.1"
