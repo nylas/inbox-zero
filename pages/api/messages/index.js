@@ -12,7 +12,7 @@ export default protect(async (req, res) => {
     const messages = await req.nylas.messages.list({
       in: "inbox",
       unread: true,
-      limit: 6,
+      limit: limit,
       offset: (page - 1) * limit
     });
 
