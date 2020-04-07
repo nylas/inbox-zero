@@ -16,18 +16,12 @@ p {
   line-height: 1.5;
 }
 
-/** Gmail imported styling */
-.gmail_quote {
-  display: none;
-}
-
-
 /** Loading bar */
 #nprogress {
   pointer-events: none;
 }
 #nprogress .bar {
-  background: #00E5BF;
+  background: #00e5bf;
   position: fixed;
   z-index: 1031;
   top: 0;
