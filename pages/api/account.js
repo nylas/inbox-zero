@@ -1,4 +1,5 @@
 import protect from "../../utils/middleware/protect";
+import cleanLabels from "../../utils/cleanLabels";
 
 /**
  * Retrieves a list of messages that belong to the current user which
@@ -11,11 +12,17 @@ export default protect(async (req, res) => {
       unread: true
     });
 
+    const labels =
+      req.account.organizationUnit === "label"
+        ? cleanLabels(await req.nylas.labels.list())
+        : [];
+
     res.status(200).json({
       name: req.account.name,
       emailAddress: req.account.emailAddress,
       organizationUnit: req.account.organizationUnit,
-      unreadCount: unreadCount
+      unreadCount: unreadCount,
+      labels
     });
   } catch (err) {
     console.log(err);
