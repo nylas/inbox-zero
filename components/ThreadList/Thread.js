@@ -28,8 +28,8 @@ function Thread({
           </span>
         </span>
         <span className={classnames(styles.Thread__fromName)}>{fromName}</span>
-        <span className={classnames(styles.Thread__subject)}>
-          {subject}
+        <span className={classnames(styles.Thread__subjectAndAttachment)}>
+          <span className={styles.Thread__subject}>{subject}</span>
           {hasAttachment && (
             <img
               className={styles.Thread__hasAttachment}
