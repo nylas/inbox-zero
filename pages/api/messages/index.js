@@ -7,14 +7,21 @@ import protect from "../../../utils/middleware/protect";
 export default protect(async (req, res) => {
   try {
     const page = req.query.page >= 1 ? req.query.page : 1;
+    const search = req.query.search || "";
     const limit = 6;
 
-    const messages = await req.nylas.messages.list({
-      in: "inbox",
-      unread: true,
+    const pagination = {
       limit: limit,
       offset: (page - 1) * limit
-    });
+    };
+
+    const messages = await (search.length > 0
+      ? req.nylas.messages.search(search, { ...pagination })
+      : await req.nylas.messages.list({
+          in: "inbox",
+          unread: true,
+          ...pagination
+        }));
 
     res.status(200).json(messages.map(simplifyMessage));
   } catch (err) {
@@ -31,6 +38,6 @@ function simplifyMessage(message) {
     date: message.date,
     snippet: message.snippet,
     unread: message.unread,
-    hasAttachments: message.hasAttachments
+    hasAttachments: message.files.length > 0
   };
 }

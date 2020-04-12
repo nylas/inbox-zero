@@ -2,12 +2,12 @@
   font-size: 38px;
 }
 
-.UnreadCount {
+.InboxOverview__UnreadCount {
   font-size: 66px;
   font-weight: bold;
 }
 
-.SenderCount {
+.InboxOverview__SenderCount {
   font-weight: bold;
 }
 
@@ -15,4 +15,16 @@
   margin-top: 32px;
   display: flex;
   justify-content: space-between;
+}
+
+.Pagination__button {
+}
+
+.Pagination__button.disabled {
+  opacity: 0.2;
+  cursor: not-allowed;
+}
+
+.SearchForm {
+  margin-top: 32px;
 }
