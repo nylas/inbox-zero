@@ -1,5 +1,4 @@
 import Nylas from "../../utils/nylas";
-import redis from "../../utils/redis";
 import jwt from "jsonwebtoken";
 import cookie from "cookie";
 
@@ -30,15 +29,12 @@ export default async (req, res) => {
     const nylas = Nylas.with(accessToken);
     const { emailAddress } = await nylas.account.get();
 
-    // store the access token in our redis cache
-    await redis.set(emailAddress, accessToken);
-
     // create a cookie with a JSON Web Token (JWT) so we can authenticate API requests
     res.setHeader(
       "Set-Cookie",
       cookie.serialize(
         "token",
-        jwt.sign({ emailAddress }, process.env.JWT_SECRET),
+        jwt.sign({ emailAddress, accessToken }, process.env.JWT_SECRET),
         {
           httpOnly: false,
           path: "/"
