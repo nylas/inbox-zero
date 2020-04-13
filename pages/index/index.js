@@ -4,11 +4,9 @@ import Router from "next/router";
 import client from "../../utils/client";
 import redirect from "../../utils/redirect";
 import Head from "next/head";
-import Layout from "../../layouts/Inbox";
+import Layout, { Content, Sidebar } from "../../layouts/Inbox";
 import Header from "../../components/Header";
 import Button from "../../components/Button";
-import Sidebar from "../../components/Sidebar";
-import Main from "../../components/Main";
 import List from "../../components/ThreadList";
 import chevronLeftIcon from "../../assets/chevron_left.svg";
 import chevronRightIcon from "../../assets/chevron_right.svg";
@@ -132,7 +130,7 @@ export default function Inbox({
           />
         </form>
       </Sidebar>
-      <Main>
+      <Content>
         {messages.length === 0 ? (
           <EmptyState />
         ) : (
@@ -142,7 +140,7 @@ export default function Inbox({
             currentSearch={currentSearch}
           />
         )}
-      </Main>
+      </Content>
     </Layout>
   );
 }

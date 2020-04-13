@@ -3,12 +3,10 @@ import client from "../../../utils/client";
 import Head from "next/head";
 import Router from "next/router";
 import Link from "next/link";
-import Layout from "../../../layouts/Inbox";
+import Layout, { Content, Sidebar } from "../../../layouts/Inbox";
 import Header from "../../../components/Header";
 import Input from "../../../components/Input";
-import Sidebar from "../../../components/Sidebar";
 import Button from "../../../components/Button";
-import Main from "../../../components/Main";
 import List from "../../../components/MessageList";
 import styles from "./id.module.css";
 import calendarIcon from "../../../assets/calendar.svg";
@@ -250,7 +248,7 @@ export default function detailsPage({ account, serverThread }) {
           </li>
         </ul>
       </Sidebar>
-      <Main>
+      <Content>
         <h2
           className={classnames(styles.Subject, {
             [styles.disabled]: thread.unread === false
@@ -331,7 +329,7 @@ export default function detailsPage({ account, serverThread }) {
             />
           </button>
         </div>
-      </Main>
+      </Content>
     </Layout>
   );
 }

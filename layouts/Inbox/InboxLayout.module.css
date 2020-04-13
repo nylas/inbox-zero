@@ -1,0 +1,17 @@
+.InboxLayout {
+  display: grid;
+  grid-template-columns: 400px auto;
+  grid-template-rows: 80px auto;
+  height: 100vh;
+}
+
+.Content {
+  padding: 56px;
+  overflow: scroll;
+}
+
+.Sidebar {
+  background: #eaeaea;
+  padding: 64px;
+  overflow: scroll;
+}
