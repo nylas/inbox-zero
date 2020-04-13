@@ -87,6 +87,20 @@ async function getMessageById(nylas, id) {
         .map(simplifyLabel)
     : [];
 
+  const previousThreads = await nylas.threads.list({
+    in: "inbox",
+    unread: true,
+    last_message_after: thread.lastMessageTimestamp,
+    limit: 1000
+  });
+
+  const nextThreads = await nylas.threads.list({
+    in: "inbox",
+    unread: true,
+    last_message_before: thread.lastMessageTimestamp,
+    limit: 1
+  });
+
   return {
     unread: thread.unread,
     senderUnread: senderUnreadCount > 0,
@@ -103,7 +117,13 @@ async function getMessageById(nylas, id) {
         active: isActiveMessage,
         ...simplifyMessage(isActiveMessage ? fullMessage : message)
       };
-    })
+    }),
+    previousThreadId:
+      previousThreads.length > 0
+        ? last(last(previousThreads).messageIds)
+        : null,
+    nextThreadId:
+      nextThreads.length > 0 ? last(nextThreads[0].messageIds) : null
   };
 }
 
@@ -140,4 +160,8 @@ function simplifyLabel(label) {
     id: label.id,
     displayName: label.displayName
   };
+}
+
+function last(arr) {
+  return arr[arr.length - 1];
 }

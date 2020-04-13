@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import fetch from "isomorphic-unfetch";
 import Head from "next/head";
+import Router from "next/router";
 import Link from "next/link";
 import Layout from "../../../layouts/Inbox";
 import Header from "../../../components/Header";
@@ -347,6 +348,39 @@ export default function detailsPage({ account, serverThread }) {
             />
           ))}
         </List>
+        <div className={styles.Pagination}>
+          <button
+            className={styles.Pagination__button}
+            disabled={thread.previousThreadId === null}
+            onClick={() =>
+              Router.push(
+                `/messages/[id]`,
+                `/messages/${thread.previousThreadId}`
+              )
+            }
+          >
+            <img
+              className={styles.Pagination__icon}
+              src={chevronLeftIcon}
+              alt="previous"
+            />{" "}
+            Previous
+          </button>
+          <button
+            className={styles.Pagination__button}
+            disabled={thread.nextThreadId === null}
+            onClick={() =>
+              Router.push(`/messages/[id]`, `/messages/${thread.nextThreadId}`)
+            }
+          >
+            Next{" "}
+            <img
+              className={styles.Pagination__icon}
+              src={chevronRightIcon}
+              alt="next"
+            />
+          </button>
+        </div>
       </Main>
     </Layout>
   );
