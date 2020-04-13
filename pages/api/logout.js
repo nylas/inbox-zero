@@ -7,7 +7,7 @@ import cookie from "cookie";
  * token, logging the user out of Inbox Zero.
  */
 export default protect(
-  async function revoke(req, res) {
+  async function logout(req, res) {
     try {
       if (req.account) {
         // get top level nylas account

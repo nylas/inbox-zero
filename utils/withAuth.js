@@ -16,10 +16,10 @@ export default function withAuth(
     } catch (e) {
       // if our authentication failed, then log the user out
       if (context.req) {
-        context.res.writeHead(302, { Location: "/api/revoke" });
+        context.res.writeHead(302, { Location: "/api/logout" });
         return context.res.end();
       } else {
-        return (document.location.pathname = "/api/revoke");
+        return (document.location.pathname = "/api/logout");
       }
     }
   };

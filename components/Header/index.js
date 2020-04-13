@@ -21,7 +21,7 @@ export default function Header({ account }) {
       <div className={styles.Profile}>
         {account.emailAddress}
         <img className={styles.Avatar} src={avatar} alt="avatar" />
-        <Button variant="secondary" href="/api/revoke">
+        <Button variant="secondary" href="/api/logout">
           Log out
         </Button>
       </div>
