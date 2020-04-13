@@ -15,3 +15,38 @@
   padding: 64px;
   overflow: scroll;
 }
+
+.Header {
+  grid-column-end: span 2;
+  background: #000000;
+  color: #ffffff;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 32px;
+}
+
+.Header__logos {
+  display: flex;
+  align-items: center;
+}
+
+.Header__logosDivider {
+  background: #ffffff;
+  height: 20px;
+  width: 2px;
+  margin: 0 40px;
+  display: block;
+}
+
+.Header__profile {
+  display: flex;
+  align-items: center;
+}
+
+.Header__avatar {
+  border-radius: 50%;
+  height: 40px;
+  margin: 0 32px;
+}
