@@ -1,5 +1,5 @@
 const jwt = require("jsonwebtoken");
-const Nylas = require("../nylas");
+const Nylas = require("../utils/nylas");
 
 export default function protect(handler, { reject = true } = {}) {
   return async (req, res, ...restArgs) => {

@@ -1,5 +1,5 @@
 import Nylas from "../../utils/nylas";
-import protect from "../../utils/middleware/protect";
+import protect from "../../middleware/protect";
 import cookie from "cookie";
 
 /**

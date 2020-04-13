@@ -1,4 +1,4 @@
-import protect from "../../utils/middleware/protect";
+import protect from "../../middleware/protect";
 
 export default protect(async (req, res) => {
   const displayName = req.body.displayName;

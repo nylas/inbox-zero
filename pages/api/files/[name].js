@@ -1,4 +1,4 @@
-import protect from "../../../utils/middleware/protect";
+import protect from "../../../middleware/protect";
 /**
  * Retrieves a list of messages that belong to the current user which
  * match the given parameters.
