@@ -21,6 +21,7 @@ import addIcon from "../../../assets/add.svg";
 import withAuth from "../../../utils/withAuth";
 import classnames from "classnames";
 import MessageFrame from "../../../components/MessageFrame";
+import { useReferrer } from "../../../components/Referrer";
 import NProgress from "nprogress";
 
 export const getServerSideProps = withAuth(async context => {
@@ -110,6 +111,10 @@ export default function detailsPage({ account, serverThread }) {
     setShowCreateLabelForm(false);
   }
 
+  const referrer = useReferrer();
+  const isOutsideReferrer =
+    referrer === null || new URL(referrer).origin !== window.location.origin;
+
   return (
     <Layout>
       <Head>
@@ -118,16 +123,23 @@ export default function detailsPage({ account, serverThread }) {
       </Head>
       <Header account={account} />
       <Sidebar>
-        <Link href="/">
-          <a className={styles.BackButton}>
-            <img
-              src={chevronLeftIcon}
-              alt="Back"
-              className={styles.BackButton__icon}
-            />{" "}
-            <span>Back</span>
-          </a>
-        </Link>
+        <button
+          className={styles.BackButton}
+          onClick={() => {
+            if (isOutsideReferrer) {
+              Router.push("/");
+            } else {
+              Router.back();
+            }
+          }}
+        >
+          <img
+            src={chevronLeftIcon}
+            alt="Back"
+            className={styles.BackButton__icon}
+          />{" "}
+          <span>Back</span>
+        </button>
         <Button>Reply</Button>
         <ul className={styles.Actions}>
           <li className={styles.Action}>
