@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import fetch from "isomorphic-unfetch";
+import client from "../../../utils/client";
 import Head from "next/head";
 import Router from "next/router";
 import Link from "next/link";
@@ -26,11 +26,7 @@ import MessageFrame from "../../../components/MessageFrame";
 import NProgress from "nprogress";
 
 export const getServerSideProps = withAuth(async context => {
-  const thread = await (
-    await fetch(`http://localhost:3000/api/messages/${context.query.id}`, {
-      headers: context.req ? { cookie: context.req.headers.cookie } : undefined
-    })
-  ).json();
+  const thread = await client(`/messages/${context.query.id}`, { context });
 
   return {
     props: {
@@ -41,10 +37,10 @@ export const getServerSideProps = withAuth(async context => {
 });
 
 export default function detailsPage({ account, serverThread }) {
-  const [thread, updateThread] = useState(serverThread);
+  const [thread, setThread] = useState(serverThread);
   const [showLabels, setShowLabels] = useState(false);
   useEffect(() => {
-    updateThread(serverThread);
+    setThread(serverThread);
   }, [serverThread]);
 
   const activeIndex = thread.messages.findIndex(
@@ -56,74 +52,34 @@ export default function detailsPage({ account, serverThread }) {
   const nextMessages = thread.messages.slice(activeIndex + 1);
   const showToDoList = account.organizationUnit === "label";
 
-  async function markAsRead() {
+  async function updateThread(update) {
     NProgress.start();
     try {
-      const updatedThread = await (
-        await fetch(`http://localhost:3000/api/messages/${message.id}`, {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({ unread: false })
-        })
-      ).json();
+      const updatedThread = await client(`/messages/${message.id}`, {
+        method: "PUT",
+        body: update
+      });
 
-      updateThread(updatedThread);
+      setThread(updatedThread);
     } catch (e) {
-      alert("Something went wrong");
-    }
-    NProgress.done();
-  }
-
-  async function markSenderAsRead() {
-    NProgress.start();
-    try {
-      const updatedThread = await (
-        await fetch(`http://localhost:3000/api/messages/${message.id}`, {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({ senderUnread: false })
-        })
-      ).json();
-
-      updateThread(updatedThread);
-    } catch (e) {
-      alert("Something went wrong");
-    }
-    NProgress.done();
-  }
-
-  async function updateLabels(labels) {
-    NProgress.start();
-    try {
-      const updatedThread = await (
-        await fetch(`http://localhost:3000/api/messages/${message.id}`, {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({ labels })
-        })
-      ).json();
-
-      updateThread(updatedThread);
-    } catch (e) {
+      console.log(e);
       alert("Something went wrong");
     }
     NProgress.done();
   }
 
   function addLabel(label) {
-    updateLabels([...thread.labels.filter(label => label.checked), label]);
+    updateThread({
+      labels: [...thread.labels.filter(label => label.checked), label]
+    });
   }
 
   function removeLabel(label) {
-    updateLabels(
-      thread.labels.filter(({ id, checked }) => id !== label.id && checked)
-    );
+    updateThread({
+      labels: thread.labels.filter(
+        ({ id, checked }) => id !== label.id && checked
+      )
+    });
   }
 
   const labelInputRef = useRef(null);
@@ -140,17 +96,11 @@ export default function detailsPage({ account, serverThread }) {
     e.preventDefault();
     NProgress.start();
     try {
-      const newLabel = await (
-        await fetch(`http://localhost:3000/api/labels`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({ displayName: labelInput })
-        })
-      ).json();
+      const newLabel = await client("/labels", {
+        body: { displayName: labelInput }
+      });
 
-      updateThread({
+      setThread({
         ...thread,
         labels: [...thread.labels, newLabel]
       });
@@ -273,7 +223,7 @@ export default function detailsPage({ account, serverThread }) {
           >
             <button
               className={styles.Action__button}
-              onClick={markAsRead}
+              onClick={() => updateThread({ unread: false })}
               disabled={thread.unread === false}
             >
               <span className={styles.Action__icon}>
@@ -289,7 +239,7 @@ export default function detailsPage({ account, serverThread }) {
           >
             <button
               className={styles.Action__button}
-              onClick={markSenderAsRead}
+              onClick={() => updateThread({ senderUnread: false })}
               disabled={thread.senderUnread === false}
             >
               <span className={styles.Action__icon}>

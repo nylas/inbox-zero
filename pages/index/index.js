@@ -1,7 +1,7 @@
 import { Fragment, useState } from "react";
 import Link from "next/link";
 import Router from "next/router";
-import fetch from "isomorphic-unfetch";
+import client from "../../utils/client";
 import Head from "next/head";
 import Layout from "../../layouts/Inbox";
 import Header from "../../components/Header";
@@ -68,16 +68,10 @@ function MessageList({ messages, currentPage, currentSearch }) {
 export const getServerSideProps = withAuth(async context => {
   const currentPage = parseInt(context.query.page) || 1;
   const search = context.query.search || "";
-  const messages = await (
-    await fetch(
-      `http://localhost:3000/api/messages?page=${currentPage}&search=${search}`,
-      {
-        headers: context.req
-          ? { cookie: context.req.headers.cookie }
-          : undefined
-      }
-    )
-  ).json();
+  const messages = await client(
+    `/messages?page=${currentPage}&search=${search}`,
+    { context }
+  );
 
   // redirect home if we are on a page that doesn't have any messages
   if (messages.length === 0 && currentPage > 1) {

@@ -1,29 +1,26 @@
-import fetch from "isomorphic-unfetch";
+import client from "./client";
 
-export default function withAuth(handler = () => {
-  return {
-    props: {}
+export default function withAuth(
+  handler = () => {
+    return {
+      props: {}
+    };
   }
-}) {
+) {
   return async function getServerSideProps(context, ...restArgs) {
-    const account = await (
-      await fetch(`http://localhost:3000/api/account`, {
-        headers: context.req ? { cookie: context.req.headers.cookie } : undefined
-      })
-    ).json();
+    try {
+      const account = await client("/account", { context });
 
-    // if our authentication failed, then log the user out
-    if (account.error === 'Unauthorized') {
+      context.account = account;
+      return handler(context, ...restArgs);
+    } catch (e) {
+      // if our authentication failed, then log the user out
       if (context.req) {
-        context.res.writeHead(302, { Location: '/api/revoke' })
-        return context.res.end()
+        context.res.writeHead(302, { Location: "/api/revoke" });
+        return context.res.end();
       } else {
-        return document.location.pathname = '/api/revoke'
+        return (document.location.pathname = "/api/revoke");
       }
     }
-
-    context.account = account
-
-    return handler(context, ...restArgs)
-  }
+  };
 }
