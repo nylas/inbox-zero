@@ -1,3 +1,7 @@
+.hidden {
+  display: none !important;
+}
+
 /** Contents */
 
 .Details {
@@ -57,12 +61,12 @@
 .Actions {
   margin: 0;
   padding: 0;
+  list-style: none;
 }
 
 .Action {
   margin-top: 32px;
   font-weight: 600;
-  list-style: none;
   cursor: pointer;
 }
 
@@ -92,9 +96,18 @@
 }
 
 .Labels {
+  margin: 18px 0 40px 54px;
+  padding: 0;
+  list-style: none;
 }
 
-.Label {
+.Label + .Label {
+  margin-top: 8px;
+}
+
+.Label__icon {
+  display: flex;
+  margin-right: 18px;
 }
 
 .Label__button {
@@ -109,4 +122,27 @@
   align-items: center;
   cursor: inherit;
   width: 100%;
+}
+
+.CreateLabelButton {
+  font: inherit;
+  color: inherit;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  margin: 12px 0 0 0;
+  text-align: inherit;
+  display: flex;
+  align-items: center;
+  cursor: inherit;
+  width: 100%;
+}
+
+.CreateLabelButton__icon {
+  display: flex;
+  margin-right: 18px;
+}
+
+.CreateLabelInputWrapper {
+  display: flex;
 }

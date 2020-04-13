@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import fetch from "isomorphic-unfetch";
 import Head from "next/head";
 import Link from "next/link";
-import InboxContainer from "../../../components/InboxContainer";
+import Layout from "../../../layouts/Inbox";
 import Header from "../../../components/Header";
+import Input from "../../../components/Input";
 import Sidebar from "../../../components/Sidebar";
 import Button from "../../../components/Button";
 import Main from "../../../components/Main";
@@ -17,9 +18,11 @@ import chevronLeftIcon from "../../../assets/chevron_left.svg";
 import chevronRightIcon from "../../../assets/chevron_right.svg";
 import checkboxUncheckedIcon from "../../../assets/checkbox_unchecked.svg";
 import checkboxCheckedIcon from "../../../assets/checkbox_checked.svg";
+import addIcon from "../../../assets/add.svg";
 import withAuth from "../../../utils/withAuth";
 import classnames from "classnames";
-import Frame, { FrameContextConsumer } from "react-frame-component";
+import MessageFrame from "../../../components/MessageFrame";
+import NProgress from "nprogress";
 
 export const getServerSideProps = withAuth(async context => {
   const thread = await (
@@ -31,59 +34,135 @@ export const getServerSideProps = withAuth(async context => {
   return {
     props: {
       account: context.account,
-      thread
+      serverThread: thread
     }
   };
 });
 
-export default function detailsPage({ account, thread }) {
+export default function detailsPage({ account, serverThread }) {
+  const [thread, updateThread] = useState(serverThread);
+  const [showLabels, setShowLabels] = useState(false);
+  useEffect(() => {
+    updateThread(serverThread);
+  }, [serverThread]);
+
   const activeIndex = thread.messages.findIndex(
     ({ active }) => active === true
   );
+
   const message = thread.messages[activeIndex];
   const prevMessages = thread.messages.slice(0, activeIndex + 1);
   const nextMessages = thread.messages.slice(activeIndex + 1);
   const showToDoList = account.organizationUnit === "label";
 
-  const [iframeHeight, setIframeHeight] = useState(500);
-  const [isUnread, setIsUnread] = useState(thread.unread);
-  const [isSenderUnread, setIsSenderUnread] = useState(thread.senderUnread);
-
   async function markAsRead() {
+    NProgress.start();
     try {
-      await fetch(`http://localhost:3000/api/messages/${message.id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ unread: false })
-      });
+      const updatedThread = await (
+        await fetch(`http://localhost:3000/api/messages/${message.id}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ unread: false })
+        })
+      ).json();
 
-      setIsUnread(false);
+      updateThread(updatedThread);
     } catch (e) {
       alert("Something went wrong");
     }
+    NProgress.done();
   }
 
   async function markSenderAsRead() {
+    NProgress.start();
     try {
-      await fetch(`http://localhost:3000/api/messages/${message.id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ senderUnread: false })
-      });
+      const updatedThread = await (
+        await fetch(`http://localhost:3000/api/messages/${message.id}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ senderUnread: false })
+        })
+      ).json();
 
-      setIsUnread(false);
-      setIsSenderUnread(false);
+      updateThread(updatedThread);
     } catch (e) {
       alert("Something went wrong");
     }
+    NProgress.done();
+  }
+
+  async function updateLabels(labels) {
+    NProgress.start();
+    try {
+      const updatedThread = await (
+        await fetch(`http://localhost:3000/api/messages/${message.id}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ labels })
+        })
+      ).json();
+
+      updateThread(updatedThread);
+    } catch (e) {
+      alert("Something went wrong");
+    }
+    NProgress.done();
+  }
+
+  function addLabel(label) {
+    updateLabels([...thread.labels.filter(label => label.checked), label]);
+  }
+
+  function removeLabel(label) {
+    updateLabels(
+      thread.labels.filter(({ id, checked }) => id !== label.id && checked)
+    );
+  }
+
+  const labelInputRef = useRef(null);
+  const [labelInput, setLabelInput] = useState("");
+  const [showCreateLabelForm, setShowCreateLabelForm] = useState(false);
+
+  useEffect(() => {
+    if (showCreateLabelForm) {
+      labelInputRef.current.focus();
+    }
+  }, [showCreateLabelForm]);
+
+  async function createLabel(e) {
+    e.preventDefault();
+    NProgress.start();
+    try {
+      const newLabel = await (
+        await fetch(`http://localhost:3000/api/labels`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ displayName: labelInput })
+        })
+      ).json();
+
+      updateThread({
+        ...thread,
+        labels: [...thread.labels, newLabel]
+      });
+    } catch (e) {
+      alert("Something went wrong");
+    }
+    NProgress.done();
+    setLabelInput("");
+    setShowCreateLabelForm(false);
   }
 
   return (
-    <InboxContainer>
+    <Layout>
       <Head>
         <title>{message.subject} - Inbox Zero</title>
         <meta name="viewport" content="initial-scale=1.0, width=device-width" />
@@ -112,7 +191,10 @@ export default function detailsPage({ account, thread }) {
           </li>
           {showToDoList ? (
             <li className={styles.Action}>
-              <button className={styles.Action__button}>
+              <button
+                className={styles.Action__button}
+                onClick={() => setShowLabels(!showLabels)}
+              >
                 <span className={styles.Action__icon}>
                   <img src={checkIcon} />
                 </span>
@@ -122,29 +204,76 @@ export default function detailsPage({ account, thread }) {
           ) : (
             ""
           )}
-          <li>
-            <ul className={styles.Labels}>
-              {account.labels.map(({ id, displayName }) => (
-                <li className={styles.Label}>
-                  <button className={styles.Label__button}>
+          {showLabels ? (
+            <li>
+              <ul className={styles.Labels}>
+                {thread.labels.map(label => (
+                  <li className={styles.Label}>
+                    <button
+                      className={styles.Label__button}
+                      onClick={() => {
+                        if (label.checked) {
+                          removeLabel(label);
+                        } else {
+                          addLabel(label);
+                        }
+                      }}
+                    >
+                      <span className={styles.Label__icon}>
+                        <img
+                          src={
+                            label.checked
+                              ? checkboxCheckedIcon
+                              : checkboxUncheckedIcon
+                          }
+                        />
+                      </span>
+                      <span>{label.displayName}</span>
+                    </button>
+                  </li>
+                ))}
+                {showCreateLabelForm ? (
+                  <li className={styles.CreateLabelInputWrapper}>
                     <span className={styles.Label__icon}>
-                      <img src={checkboxCheckedIcon} />
+                      <img src={checkboxUncheckedIcon} />
                     </span>
-                    <span>{displayName}</span>
+                    <form onSubmit={createLabel}>
+                      <Input
+                        ref={labelInputRef}
+                        onChange={e => setLabelInput(e.target.value)}
+                      />
+                    </form>
+                  </li>
+                ) : (
+                  ""
+                )}
+                <li>
+                  <button
+                    className={styles.CreateLabelButton}
+                    onClick={() => {
+                      setShowCreateLabelForm(!showCreateLabelForm);
+                    }}
+                  >
+                    <span className={styles.CreateLabelButton__icon}>
+                      <img src={addIcon} />
+                    </span>
+                    Create List
                   </button>
                 </li>
-              ))}
-            </ul>
-          </li>
+              </ul>
+            </li>
+          ) : (
+            ""
+          )}
           <li
             className={classnames(styles.Action, {
-              [styles.disabled]: isUnread === false
+              [styles.disabled]: thread.unread === false
             })}
           >
             <button
               className={styles.Action__button}
               onClick={markAsRead}
-              disabled={isUnread === false}
+              disabled={thread.unread === false}
             >
               <span className={styles.Action__icon}>
                 <img src={flagIcon} />
@@ -154,13 +283,13 @@ export default function detailsPage({ account, thread }) {
           </li>
           <li
             className={classnames(styles.Action, {
-              [styles.disabled]: isSenderUnread === false
+              [styles.disabled]: thread.senderUnread === false
             })}
           >
             <button
               className={styles.Action__button}
               onClick={markSenderAsRead}
-              disabled={isSenderUnread === false}
+              disabled={thread.senderUnread === false}
             >
               <span className={styles.Action__icon}>
                 <img src={doubleFlagIcon} />
@@ -173,7 +302,7 @@ export default function detailsPage({ account, thread }) {
       <Main>
         <h2
           className={classnames(styles.Subject, {
-            [styles.disabled]: isUnread === false
+            [styles.disabled]: thread.unread === false
           })}
         >
           {message.subject}
@@ -191,28 +320,7 @@ export default function detailsPage({ account, thread }) {
           ))}
         </List>
         <div className={styles.Contents}>
-          <Frame
-            style={{
-              width: "100%",
-              border: 0,
-              height: `${iframeHeight}px`
-            }}
-            initialContent={message.body}
-          >
-            <FrameContextConsumer>
-              {({ document, window }) => {
-                if (iframeHeight === 500) {
-                  setTimeout(
-                    () =>
-                      setIframeHeight(
-                        window.document.documentElement.scrollHeight
-                      ),
-                    1000
-                  );
-                }
-              }}
-            </FrameContextConsumer>
-          </Frame>
+          <MessageFrame content={message.body} />
           {message.hasAttachments && (
             <div className={styles.AttachmentWrapper}>
               {message.files.map(file => (
@@ -240,6 +348,6 @@ export default function detailsPage({ account, thread }) {
           ))}
         </List>
       </Main>
-    </InboxContainer>
+    </Layout>
   );
 }

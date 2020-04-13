@@ -3,7 +3,7 @@ import Link from "next/link";
 import Router from "next/router";
 import fetch from "isomorphic-unfetch";
 import Head from "next/head";
-import InboxContainer from "../../components/InboxContainer";
+import Layout from "../../layouts/Inbox";
 import Header from "../../components/Header";
 import Button from "../../components/Button";
 import Sidebar from "../../components/Sidebar";
@@ -96,7 +96,7 @@ export default function Inbox({
   const [search, setSearch] = useState(currentSearch);
 
   return (
-    <InboxContainer>
+    <Layout>
       <Head>
         <title>
           Inbox ({account.unreadCount}) - {account.emailAddress}
@@ -141,6 +141,6 @@ export default function Inbox({
           />
         )}
       </Main>
-    </InboxContainer>
+    </Layout>
   );
 }

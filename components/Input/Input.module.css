@@ -16,4 +16,5 @@
 
 .Input:focus {
   background: white;
+  outline: 0;
 }

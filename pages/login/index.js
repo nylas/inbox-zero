@@ -1,7 +1,7 @@
 import { useState } from "react";
 import Head from "next/head";
 import { useRouter } from "next/router";
-import LoginContainer from "../../components/LoginContainer";
+import Layout from "../../layouts/Public";
 import Input from "../../components/Input";
 import Button from "../../components/Button";
 import styles from "./login.module.css";
@@ -31,7 +31,7 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
 
   return (
-    <LoginContainer>
+    <Layout>
       <Head>
         <title>Inbox Zero | Login</title>
         <meta name="viewport" content="initial-scale=1.0, width=device-width" />
@@ -55,6 +55,6 @@ export default function LoginPage() {
         <Button>Login</Button>
         {message ? <div className={styles.ErrorMessage}>{message}</div> : ""}
       </form>
-    </LoginContainer>
+    </Layout>
   );
 }

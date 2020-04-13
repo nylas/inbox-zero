@@ -1,5 +1,4 @@
 import protect from "../../../utils/middleware/protect";
-import cleanLabels from "../../../utils/cleanLabels";
 
 /**
  * Retrieves a list of messages that belong to the current user which
@@ -7,55 +6,39 @@ import cleanLabels from "../../../utils/cleanLabels";
  */
 export default protect(async (req, res) => {
   if (req.method === "GET") {
-    return getMessage(req, res);
+    return getMessageRequest(req, res);
   }
   if (req.method === "PUT") {
-    return updateMessage(req, res);
+    return updateMessageRequest(req, res);
   } else {
     res.status(405).end();
   }
 });
 
-async function getMessage(req, res) {
+async function getMessageRequest(req, res) {
   try {
-    const id = req.query.id;
-    const fullMessage = await req.nylas.messages.find(id);
-    const fromEmailAddress = fullMessage.from[0].email;
-    const thread = await req.nylas.threads.find(fullMessage.threadId, null, {
-      view: "expanded"
-    });
-    const senderUnreadCount = await req.nylas.messages.count({
-      in: "inbox",
-      from: fromEmailAddress,
-      unread: true
-    });
-
-    res.status(200).json({
-      unread: thread.unread,
-      senderUnread: senderUnreadCount > 0,
-      messages: thread.messages.map(message => {
-        const isActiveMessage = message.id === fullMessage.id;
-
-        return {
-          active: isActiveMessage,
-          ...simplifyMessage(isActiveMessage ? fullMessage : message)
-        };
-      })
-    });
+    res.status(200).json(await getMessageById(req.nylas, req.query.id));
   } catch (err) {
     console.log(err);
     res.status(500).json({ error: "Something went wrong. Please try again." });
   }
 }
 
-async function updateMessage(req, res) {
+async function updateMessageRequest(req, res) {
   try {
     const id = req.query.id;
     const fullMessage = await req.nylas.messages.find(id);
 
     if (req.body.unread === false) {
       fullMessage.unread = false;
-      fullMessage.save();
+    }
+
+    if (req.body.labels) {
+      // replace all but the default labels
+      const messageDefaultLabels = fullMessage.labels.filter(label =>
+        defaultLabels.includes(label.name)
+      );
+      fullMessage.labels = [...messageDefaultLabels, ...req.body.labels];
     }
 
     if (req.body.senderUnread === false) {
@@ -66,17 +49,62 @@ async function updateMessage(req, res) {
         unread: true
       });
 
-      for (const message of unreadMessages) {
-        message.unread = false;
-        message.save();
-      }
+      await Promise.all(
+        unreadMessages.map(message => {
+          message.unread = false;
+          return message.save();
+        })
+      );
     }
 
-    res.status(200).end();
+    await fullMessage.save();
+
+    const u = await getMessageById(req.nylas, id);
+
+    res.status(200).json(u);
   } catch (err) {
     console.log(err);
     res.status(500).json({ error: "Something went wrong. Please try again." });
   }
+}
+
+async function getMessageById(nylas, id) {
+  const fullMessage = await nylas.messages.find(id);
+  const fromEmailAddress = fullMessage.from[0].email;
+  const thread = await nylas.threads.find(fullMessage.threadId, null, {
+    view: "expanded"
+  });
+
+  const senderUnreadCount = await nylas.messages.count({
+    in: "inbox",
+    from: fromEmailAddress,
+    unread: true
+  });
+
+  const accountLabels = thread.labels
+    ? (await nylas.labels.list())
+        .filter(label => !defaultLabels.includes(label.name))
+        .map(simplifyLabel)
+    : [];
+
+  return {
+    unread: thread.unread,
+    senderUnread: senderUnreadCount > 0,
+    labels: accountLabels.map(label => {
+      return {
+        ...label,
+        checked: !!thread.labels.find(({ id }) => id === label.id)
+      };
+    }),
+    messages: thread.messages.map(message => {
+      const isActiveMessage = message.id === fullMessage.id;
+
+      return {
+        active: isActiveMessage,
+        ...simplifyMessage(isActiveMessage ? fullMessage : message)
+      };
+    })
+  };
 }
 
 function simplifyMessage(message) {
@@ -93,5 +121,23 @@ function simplifyMessage(message) {
           return { filename: filename || "noname", id };
         })
       : []
+  };
+}
+
+const defaultLabels = [
+  "inbox",
+  "all",
+  "trash",
+  "archive",
+  "drafts",
+  "sent",
+  "spam",
+  "important"
+];
+
+function simplifyLabel(label) {
+  return {
+    id: label.id,
+    displayName: label.displayName
   };
 }
