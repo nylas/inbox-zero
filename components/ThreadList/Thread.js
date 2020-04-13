@@ -15,7 +15,7 @@ function Thread({
   hasAttachment = false
 }) {
   return (
-    <Link href="/messages/[id]" as={`/messages/${id}`}>
+    <Link href="/threads/[id]" as={`/threads/${id}`}>
       <a
         className={classnames(
           styles.Thread,

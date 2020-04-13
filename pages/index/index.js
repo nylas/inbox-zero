@@ -15,64 +15,16 @@ import withAuth from "../../utils/withAuth";
 import classnames from "classnames";
 import Input from "../../components/Input";
 
-function EmptyState() {
-  return <img src={completeIcon} alt="Inbox zero achieved!" />;
-}
-
-function MessageList({ messages, currentPage, currentSearch }) {
-  const previousPage = currentPage > 1 ? currentPage - 1 : 1;
-  const nextPage = currentPage + 1;
-  const maybeSearch =
-    currentSearch.length > 0 ? `&search=${currentSearch}` : "";
-
-  return (
-    <Fragment>
-      <List>
-        {messages.map(message => (
-          <List.Thread
-            id={message.id}
-            unread={message.unread}
-            fromName={message.from[0].name}
-            subject={message.subject}
-            snippet={message.snippet}
-            date={message.date}
-            hasAttachment={message.hasAttachments}
-          />
-        ))}
-      </List>
-      <div className={styles.Pagination}>
-        <button
-          className={styles.Pagination__button}
-          disabled={currentPage <= 1}
-          onClick={() =>
-            Router.push(`/`, `/?page=${previousPage}${maybeSearch}`)
-          }
-        >
-          <img src={chevronLeftIcon} alt="previous" />
-        </button>
-        <div>Page {currentPage}</div>
-        <button
-          className={styles.Pagination__button}
-          disabled={messages.length < 6}
-          onClick={() => Router.push(`/`, `/?page=${nextPage}${maybeSearch}`)}
-        >
-          <img src={chevronRightIcon} alt="next" />
-        </button>
-      </div>
-    </Fragment>
-  );
-}
-
 export const getServerSideProps = withAuth(async context => {
   const currentPage = parseInt(context.query.page) || 1;
   const search = context.query.search || "";
-  const messages = await client(
-    `/messages?page=${currentPage}&search=${search}`,
+  const threads = await client(
+    `/threads?page=${currentPage}&search=${search}`,
     { context }
   );
 
-  // redirect home if we are on a page that doesn't have any messages
-  if (messages.length === 0 && currentPage > 1) {
+  // redirect home if we are on a page that doesn't have any threads
+  if (threads.length === 0 && currentPage > 1) {
     redirect("/", { context });
   }
 
@@ -81,18 +33,15 @@ export const getServerSideProps = withAuth(async context => {
       account: context.account,
       currentPage,
       currentSearch: search,
-      messages
+      threads
     }
   };
 });
 
-export default function Inbox({
-  account,
-  messages,
-  currentPage,
-  currentSearch
-}) {
-  const [search, setSearch] = useState(currentSearch);
+export default function Inbox(props) {
+  const account = props.account;
+  const isInboxEmpty = props.threads.length === 0;
+  const [search, setSearch] = useState(props.currentSearch);
 
   return (
     <Layout>
@@ -130,16 +79,56 @@ export default function Inbox({
         </form>
       </Sidebar>
       <Content>
-        {messages.length === 0 ? (
-          <EmptyState />
-        ) : (
-          <MessageList
-            messages={messages}
-            currentPage={currentPage}
-            currentSearch={currentSearch}
-          />
-        )}
+        {isInboxEmpty ? <EmptyState /> : <Threads {...props} />}
       </Content>
     </Layout>
+  );
+}
+
+function EmptyState() {
+  return <img src={completeIcon} alt="Inbox zero achieved!" />;
+}
+
+function Threads({ account, threads, currentPage, currentSearch }) {
+  const previousPage = currentPage > 1 ? currentPage - 1 : 1;
+  const nextPage = currentPage + 1;
+  const maybeSearch =
+    currentSearch.length > 0 ? `&search=${currentSearch}` : "";
+
+  return (
+    <Fragment>
+      <List>
+        {threads.map(thread => (
+          <List.Thread
+            id={thread.id}
+            unread={thread.unread}
+            fromName={thread.fromName}
+            subject={thread.subject}
+            snippet={thread.snippet}
+            date={thread.date}
+            hasAttachment={thread.hasAttachments}
+          />
+        ))}
+      </List>
+      <div className={styles.Pagination}>
+        <button
+          className={styles.Pagination__button}
+          disabled={currentPage <= 1}
+          onClick={() =>
+            Router.push(`/`, `/?page=${previousPage}${maybeSearch}`)
+          }
+        >
+          <img src={chevronLeftIcon} alt="previous" />
+        </button>
+        <div>Page {currentPage}</div>
+        <button
+          className={styles.Pagination__button}
+          disabled={threads.length < 6}
+          onClick={() => Router.push(`/`, `/?page=${nextPage}${maybeSearch}`)}
+        >
+          <img src={chevronRightIcon} alt="next" />
+        </button>
+      </div>
+    </Fragment>
   );
 }

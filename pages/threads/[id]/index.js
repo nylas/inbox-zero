@@ -24,7 +24,7 @@ import { useReferrer } from "../../../components/Referrer";
 import NProgress from "nprogress";
 
 export const getServerSideProps = withAuth(async context => {
-  const thread = await client(`/messages/${context.query.id}`, { context });
+  const thread = await client(`/threads/${context.query.id}`, { context });
 
   return {
     props: {
