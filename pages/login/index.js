@@ -4,6 +4,7 @@ import { useRouter } from "next/router";
 import Layout from "../../layouts/Public";
 import Input from "../../components/Input";
 import Button from "../../components/Button";
+import redirect from "../../utils/redirect";
 import styles from "./login.module.css";
 import cookie from "cookie";
 
@@ -13,12 +14,7 @@ export function getServerSideProps(context) {
   );
 
   if (cookies.token) {
-    if (context.req) {
-      context.res.writeHead(302, { Location: "/" });
-      return context.res.end();
-    } else {
-      return (document.location.pathname = "/");
-    }
+    redirect("/", { context });
   }
 
   return { props: {} };

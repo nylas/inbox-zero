@@ -1,4 +1,5 @@
 import client from "./client";
+import redirect from "./redirect";
 
 export default function withAuth(
   handler = () => {
@@ -14,13 +15,8 @@ export default function withAuth(
       context.account = account;
       return handler(context, ...restArgs);
     } catch (e) {
-      // if our authentication failed, then log the user out
-      if (context.req) {
-        context.res.writeHead(302, { Location: "/api/logout" });
-        return context.res.end();
-      } else {
-        return (document.location.pathname = "/api/logout");
-      }
+      // if our authentication check failed, then log the user out
+      redirect("/api/logout", { context });
     }
   };
 }

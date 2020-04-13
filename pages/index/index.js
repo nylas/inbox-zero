@@ -2,6 +2,7 @@ import { Fragment, useState } from "react";
 import Link from "next/link";
 import Router from "next/router";
 import client from "../../utils/client";
+import redirect from "../../utils/redirect";
 import Head from "next/head";
 import Layout from "../../layouts/Inbox";
 import Header from "../../components/Header";
@@ -75,12 +76,7 @@ export const getServerSideProps = withAuth(async context => {
 
   // redirect home if we are on a page that doesn't have any messages
   if (messages.length === 0 && currentPage > 1) {
-    if (context.req) {
-      context.res.writeHead(302, { Location: "/" });
-      return context.res.end();
-    } else {
-      return (document.location.pathname = "/");
-    }
+    redirect("/", { context });
   }
 
   return {
