@@ -43,21 +43,23 @@ function MessageList({ messages, currentPage, currentSearch }) {
         ))}
       </List>
       <div className={styles.Pagination}>
-        <Link href={`/?page=${previousPage}${maybeSearch}`}>
-          <a
-            className={classnames(styles.Pagination__button, {
-              [styles.disabled]: currentPage <= 1
-            })}
-          >
-            <img src={chevronLeftIcon} alt="previous" />
-          </a>
-        </Link>
+        <button
+          className={styles.Pagination__button}
+          disabled={currentPage <= 1}
+          onClick={() =>
+            Router.push(`/`, `/?page=${previousPage}${maybeSearch}`)
+          }
+        >
+          <img src={chevronLeftIcon} alt="previous" />
+        </button>
         <div>Page {currentPage}</div>
-        <Link href={`/?page=${nextPage}${maybeSearch}`}>
-          <a className={classnames(styles.Pagination__button)}>
-            <img src={chevronRightIcon} alt="next" />
-          </a>
-        </Link>
+        <button
+          className={styles.Pagination__button}
+          disabled={messages.length < 6}
+          onClick={() => Router.push(`/`, `/?page=${nextPage}${maybeSearch}`)}
+        >
+          <img src={chevronRightIcon} alt="next" />
+        </button>
       </div>
     </Fragment>
   );
@@ -76,6 +78,16 @@ export const getServerSideProps = withAuth(async context => {
       }
     )
   ).json();
+
+  // redirect home if we are on a page that doesn't have any messages
+  if (messages.length === 0 && currentPage > 1) {
+    if (context.req) {
+      context.res.writeHead(302, { Location: "/" });
+      return context.res.end();
+    } else {
+      return (document.location.pathname = "/");
+    }
+  }
 
   return {
     props: {

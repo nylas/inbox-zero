@@ -18,9 +18,15 @@
 }
 
 .Pagination__button {
+  font: inherit;
+  color: inherit;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
 }
 
-.Pagination__button.disabled {
+.Pagination__button[disabled] {
   opacity: 0.2;
   cursor: not-allowed;
 }
