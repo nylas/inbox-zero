@@ -54,9 +54,8 @@ function Recipients(props) {
   );
 }
 
-function ReplySidebar({ setShowReply }) {
+function ReplySidebar({ triggerSubmit, setShowReply, state, setState }) {
   const fileInputRef = useRef(null);
-  const [files, setFiles] = useState([]);
 
   async function handleFileChange(event) {
     NProgress.start();
@@ -69,7 +68,10 @@ function ReplySidebar({ setShowReply }) {
     });
 
     const file = await response.json();
-    setFiles([...files, file]);
+    setState({
+      ...state,
+      files: [...state.files, file]
+    });
     NProgress.done();
   }
 
@@ -78,13 +80,22 @@ function ReplySidebar({ setShowReply }) {
       method: "DELETE"
     });
 
-    setFiles(files.filter(file => file.id !== id));
+    setState({
+      ...state,
+      files: state.files.filter(file => file.id !== id)
+    });
   }
 
   return (
     <Sidebar>
-      <BackButton onClick={() => setShowReply(false)} />
-      <Button>Send</Button>
+      <BackButton
+        onClick={() => {
+          NProgress.start();
+          setShowReply(false);
+          NProgress.done();
+        }}
+      />
+      <Button onClick={triggerSubmit}>Send</Button>
       <ActionList>
         <input
           type="file"
@@ -100,7 +111,7 @@ function ReplySidebar({ setShowReply }) {
         >
           Add Attachment »
         </Action>
-        {files.map(file => {
+        {state.files.map(file => {
           return (
             <Action
               icon={removeIcon}
@@ -117,48 +128,22 @@ function ReplySidebar({ setShowReply }) {
   );
 }
 
-function ReplyForm({ thread, to = [], cc = [], bcc = [] }) {
-  const referrer = useReferrer();
-  const isOutsideReferrer =
-    referrer === null || new URL(referrer).origin !== window.location.origin;
-
-  const [body, setBody] = useState("");
-  const [toInput, setToInput] = useState(
-    to.map(({ email }) => email).join(", ")
-  );
-  const [showSecondaryEmails, setShowSecondaryEmails] = useState(true);
-  const [ccInput, setCcInput] = useState(
-    cc.map(({ email }) => email).join(", ")
-  );
-  const [bccInput, setBccInput] = useState(
-    bcc.map(({ email }) => email).join(", ")
-  );
-
-  function cleanEmail(str) {
-    return str.trim().toLowerCase();
-  }
-
-  async function handleSubmit(e) {
-    e.preventDefault();
-
-    NProgress.start();
-    await client(`/threads/${thread.id}`, {
-      body: {
-        to: toInput ? toInput.split(",").map(cleanEmail) : [],
-        cc: ccInput ? ccInput.split(",").map(cleanEmail) : [],
-        bcc: bccInput ? bccInput.split(",").map(cleanEmail) : [],
-        body
-      }
-    });
-    NProgress.done();
-
-    alert("sent!");
-  }
+function ReplyForm({ state, setState }) {
+  const [showSecondaryEmails, setShowSecondaryEmails] = useState(false);
 
   return (
     <Fragment>
       <Recipients>
-        <Input value={toInput} onChange={e => setToInput(e.target.value)} />
+        <Input
+          value={state.to}
+          placeholder="To"
+          onChange={e =>
+            setState({
+              ...state,
+              to: e.target.value
+            })
+          }
+        />
         <div>
           <button
             className={styles.ShowSecondaryEmailsButton}
@@ -172,14 +157,24 @@ function ReplyForm({ thread, to = [], cc = [], bcc = [] }) {
         {showSecondaryEmails ? (
           <Fragment>
             <Input
-              value={ccInput}
+              value={state.cc}
               placeholder="Cc"
-              onChange={e => setCcInput(e.target.value)}
+              onChange={e =>
+                setState({
+                  ...state,
+                  cc: e.target.value
+                })
+              }
             />
             <Input
-              value={bccInput}
+              value={state.bcc}
               placeholder="Bcc"
-              onChange={e => setBccInput(e.target.value)}
+              onChange={e =>
+                setState({
+                  ...state,
+                  bcc: e.target.value
+                })
+              }
             />
           </Fragment>
         ) : (
@@ -187,7 +182,15 @@ function ReplyForm({ thread, to = [], cc = [], bcc = [] }) {
         )}
       </Recipients>
       <div style={{ padding: "0 24px" }}>
-        <Editor value={body} onChange={setBody} />
+        <Editor
+          value={state.body}
+          onChange={body => {
+            setState({
+              ...state,
+              body
+            });
+          }}
+        />
       </div>
     </Fragment>
   );
@@ -385,7 +388,15 @@ function DetailsSidebar({ account, thread, setThread, setShowReply }) {
           }
         }}
       />
-      <Button onClick={() => setShowReply(true)}>Reply</Button>
+      <Button
+        onClick={() => {
+          NProgress.start();
+          setShowReply(true);
+          NProgress.done();
+        }}
+      >
+        Reply
+      </Button>
       <ActionList>
         <Action icon={calendarIcon} onClick={() => {}}>
           Schedule Meeting »
@@ -444,11 +455,66 @@ export const getServerSideProps = withAuth(async context => {
 });
 
 export default function threadPage({ account, serverThread, messages }) {
-  const [showReply, setShowReply] = useState(true);
+  const [showReply, setShowReply] = useState(false);
   const [thread, setThread] = useState(serverThread);
   useEffect(() => {
     setThread(serverThread);
   }, [serverThread]);
+
+  const [formState, setFormState] = useState({
+    body: "",
+    to: [...messages[0].to, ...messages[0].from]
+      .filter(({ email }) => email !== account.emailAddress)
+      .map(({ email }) => email)
+      .join(", "),
+    cc: messages[0].cc.map(({ email }) => email).join(", "),
+    bcc: messages[0].bcc.map(({ email }) => email).join(", "),
+    files: []
+  });
+
+  async function triggerSubmit(e) {
+    e.preventDefault();
+    NProgress.start();
+
+    const toEmails = formState.to
+      ? formState.to.split(",").map(cleanEmail)
+      : [];
+    const ccEmails = formState.cc
+      ? formState.cc.split(",").map(cleanEmail)
+      : [];
+    const bccEmails = formState.bcc
+      ? formState.bcc.split(",").map(cleanEmail)
+      : [];
+    const allEmails = [...toEmails, ...ccEmails, ...bccEmails];
+
+    const invalidEmail = allEmails.find(email => !email.includes("@"));
+    // if (invalidEmail) {
+    //   NProgress.done();
+    //   return alert(`${invalidEmail} is not a valid email.`)
+    // }
+
+    // if (allEmails.length === 0) {
+    //   NProgress.done();
+    //   return alert(`Please specify at least one recipient.`)
+    // }
+
+    try {
+      await client(`/threads/${thread.id}`, {
+        body: {
+          to: toEmails,
+          cc: ccEmails,
+          bcc: bccEmails,
+          body: formState.body,
+          files: formState.files
+        }
+      });
+
+      Router.push("/");
+    } catch (error) {
+      NProgress.done();
+      alert(error.error);
+    }
+  }
 
   return (
     <Layout>
@@ -458,7 +524,12 @@ export default function threadPage({ account, serverThread, messages }) {
       </Head>
       <Header account={account} />
       {showReply ? (
-        <ReplySidebar setShowReply={setShowReply} />
+        <ReplySidebar
+          triggerSubmit={triggerSubmit}
+          state={formState}
+          setState={setFormState}
+          setShowReply={setShowReply}
+        />
       ) : (
         <DetailsSidebar
           account={account}
@@ -469,16 +540,7 @@ export default function threadPage({ account, serverThread, messages }) {
       )}
       <Content>
         <Subject unread={thread.unread}>{thread.subject}</Subject>
-        {showReply && (
-          <ReplyForm
-            thread={thread}
-            to={[...messages[0].to, ...messages[0].from].filter(
-              ({ email }) => email !== account.emailAddress
-            )}
-            cc={messages[0].cc}
-            bcc={messages[0].bcc}
-          />
-        )}
+        {showReply && <ReplyForm state={formState} setState={setFormState} />}
         <Accordion divideTop={showReply}>
           {messages.map(message => (
             <Accordion.Message
@@ -528,4 +590,8 @@ export default function threadPage({ account, serverThread, messages }) {
       </Content>
     </Layout>
   );
+}
+
+function cleanEmail(str) {
+  return str.trim().toLowerCase();
 }

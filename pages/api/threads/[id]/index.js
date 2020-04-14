@@ -79,8 +79,10 @@ async function updateThreadRequest(req, res) {
 async function sendReplyRequest(req, res) {
   const id = req.query.id;
   const thread = await req.nylas.threads.find(id);
+  thread.unread = false;
   const draft = req.nylas.drafts.build();
   // Send replies by setting replyToMessageId for a draft
+  draft.subject = thread.subject;
   draft.replyToMessageId = last(thread.messageIds);
   draft.to = req.body.to.map(email => {
     return { email };
@@ -92,9 +94,11 @@ async function sendReplyRequest(req, res) {
     return { email };
   });
   draft.body = req.body.body;
-  console.log(draft);
+  draft.files = req.body.files;
+
   try {
-    // await draft.send();
+    await draft.send();
+    await thread.save();
     res.json({});
   } catch (e) {
     res.status(400).json({

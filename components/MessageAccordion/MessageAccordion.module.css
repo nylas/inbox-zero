@@ -6,7 +6,7 @@
   border: 1px solid transparent;
   border-top-color: #979797;
   cursor: pointer;
-  transition: 0.15s;
+  transition: background 0.15s, border 0.15s, box-shadow 0.15s;
   display: grid;
   grid-template-columns: 40px 1fr 3fr 100px;
   grid-template-rows: auto;
@@ -22,6 +22,7 @@
 }
 
 .MessageAccordion:not(.divideTop) .Message:first-child {
+  transition: background 0.15s, border 0.15s, box-shadow 0.15s, border-top 0s;
   border-top-color: transparent;
 }
 

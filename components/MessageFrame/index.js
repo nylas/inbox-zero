@@ -12,7 +12,8 @@ export default ({ content }) => {
     const style = doc.createElement("style");
     style.innerHTML = `
       body {
-        font-family: Roboto, RobotoDraft, Helvetica, Arial, sans-serif;
+        font-family: "Source Sans Pro", Roboto, RobotoDraft, Helvetica, Arial, sans-serif;
+        overflow: hidden;
       }
 
       .gmail_quote {
@@ -43,7 +44,8 @@ export default ({ content }) => {
       style={{
         width: "100%",
         border: 0,
-        height: `${iframeHeight}px`
+        height: `${iframeHeight}px`,
+        overflow: "hidden"
       }}
     />
   );

@@ -1,7 +1,3 @@
-.hidden {
-  display: none !important;
-}
-
 /** Contents */
 
 .Details {
@@ -102,7 +98,7 @@
   text-align: inherit;
   display: flex;
   align-items: center;
-  cursor: inherit;
+  cursor: pointer;
   width: 100%;
 }
 
