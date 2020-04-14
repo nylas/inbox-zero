@@ -4,7 +4,7 @@ import styles from "./MessageAccordion.module.css";
 import Message from "./Message";
 import classnames from "classnames";
 
-function MessageAccordion({ children }) {
+function MessageAccordion({ children, divideTop }) {
   const [index, setIndex] = useState(0);
 
   useEffect(() => {
@@ -12,7 +12,11 @@ function MessageAccordion({ children }) {
   }, [children]);
 
   return (
-    <div className={styles.MessageAccordion}>
+    <div
+      className={classnames(styles.MessageAccordion, {
+        [styles.divideTop]: divideTop
+      })}
+    >
       {React.Children.map(children, (child, i) =>
         React.cloneElement(child, {
           ...child.props,

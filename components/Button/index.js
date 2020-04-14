@@ -8,7 +8,8 @@ export default function Button({
   as,
   variant = "primary",
   children,
-  className = ""
+  className = "",
+  ...props
 }) {
   const classes = classnames(styles.Button, styles[variant], className);
   if (href) {
@@ -19,7 +20,11 @@ export default function Button({
     );
   }
 
-  return <button className={classes}>{children}</button>;
+  return (
+    <button className={classes} {...props}>
+      {children}
+    </button>
+  );
 }
 
 Button.propTypes = {

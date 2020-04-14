@@ -49,7 +49,7 @@ function Message({
           {formatDate(new Date(date))}
         </span>
       </a>
-      {isOpen && body ? (
+      {isOpen ? (
         <div className={styles.MessageContents}>
           <MessageFrame content={body} />
           {hasAttachments && (

@@ -54,11 +54,12 @@ function Recipients(props) {
   );
 }
 
-function ReplySidebar() {
+function ReplySidebar({ setShowReply }) {
   const fileInputRef = useRef(null);
   const [files, setFiles] = useState([]);
 
   async function handleFileChange(event) {
+    NProgress.start();
     const formData = new FormData();
     formData.append("upload", event.target.files[0]);
 
@@ -69,7 +70,7 @@ function ReplySidebar() {
 
     const file = await response.json();
     setFiles([...files, file]);
-    console.log(file);
+    NProgress.done();
   }
 
   async function deleteFile(id) {
@@ -82,7 +83,7 @@ function ReplySidebar() {
 
   return (
     <Sidebar>
-      <BackButton />
+      <BackButton onClick={() => setShowReply(false)} />
       <Button>Send</Button>
       <ActionList>
         <input
@@ -116,21 +117,22 @@ function ReplySidebar() {
   );
 }
 
-function ReplyForm({ account, thread }) {
+function ReplyForm({ thread, to = [], cc = [], bcc = [] }) {
   const referrer = useReferrer();
   const isOutsideReferrer =
     referrer === null || new URL(referrer).origin !== window.location.origin;
 
   const [body, setBody] = useState("");
   const [toInput, setToInput] = useState(
-    thread.participants
-      .map(({ email }) => email)
-      .filter(email => email !== account.emailAddress)
-      .join(", ")
+    to.map(({ email }) => email).join(", ")
   );
   const [showSecondaryEmails, setShowSecondaryEmails] = useState(true);
-  const [ccInput, setCcInput] = useState("");
-  const [bccInput, setBccInput] = useState("");
+  const [ccInput, setCcInput] = useState(
+    cc.map(({ email }) => email).join(", ")
+  );
+  const [bccInput, setBccInput] = useState(
+    bcc.map(({ email }) => email).join(", ")
+  );
 
   function cleanEmail(str) {
     return str.trim().toLowerCase();
@@ -139,6 +141,7 @@ function ReplyForm({ account, thread }) {
   async function handleSubmit(e) {
     e.preventDefault();
 
+    NProgress.start();
     await client(`/threads/${thread.id}`, {
       body: {
         to: toInput ? toInput.split(",").map(cleanEmail) : [],
@@ -147,6 +150,9 @@ function ReplyForm({ account, thread }) {
         body
       }
     });
+    NProgress.done();
+
+    alert("sent!");
   }
 
   return (
@@ -308,7 +314,7 @@ function Action({ disabled, icon, onClick, onClickIcon = null, children }) {
   );
 }
 
-function DetailsSidebar({ account, thread, setThread }) {
+function DetailsSidebar({ account, thread, setThread, setShowReply }) {
   const [showLabels, setShowLabels] = useState(false);
   const showToDoList = account.organizationUnit === "label";
 
@@ -360,23 +366,26 @@ function DetailsSidebar({ account, thread, setThread }) {
   }
 
   const referrer = useReferrer();
-  const isOutsideReferrer =
-    referrer === null || new URL(referrer).origin !== window.location.origin;
 
   return (
     <Sidebar>
       <BackButton
         onClick={() => {
-          if (isOutsideReferrer) {
+          const isOutsideReferrer =
+            referrer === null ||
+            new URL(referrer).origin !== window.location.origin;
+
+          const fromListPage =
+            !isOutsideReferrer && new URL(referrer).pathname === "/";
+
+          if (isOutsideReferrer || !fromListPage) {
             Router.push("/");
           } else {
             Router.back();
           }
         }}
       />
-      <Button href={`/threads/[id]/reply`} as={`/threads/${thread.id}/reply`}>
-        Reply
-      </Button>
+      <Button onClick={() => setShowReply(true)}>Reply</Button>
       <ActionList>
         <Action icon={calendarIcon} onClick={() => {}}>
           Schedule Meeting »
@@ -449,18 +458,28 @@ export default function threadPage({ account, serverThread, messages }) {
       </Head>
       <Header account={account} />
       {showReply ? (
-        <ReplySidebar />
+        <ReplySidebar setShowReply={setShowReply} />
       ) : (
         <DetailsSidebar
           account={account}
           thread={thread}
           setThread={setThread}
+          setShowReply={setShowReply}
         />
       )}
       <Content>
         <Subject unread={thread.unread}>{thread.subject}</Subject>
-        {showReply && <ReplyForm account={account} thread={thread} />}
-        <Accordion>
+        {showReply && (
+          <ReplyForm
+            thread={thread}
+            to={[...messages[0].to, ...messages[0].from].filter(
+              ({ email }) => email !== account.emailAddress
+            )}
+            cc={messages[0].cc}
+            bcc={messages[0].bcc}
+          />
+        )}
+        <Accordion divideTop={showReply}>
           {messages.map(message => (
             <Accordion.Message
               id={message.id}

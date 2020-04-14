@@ -85,9 +85,14 @@ async function sendReplyRequest(req, res) {
   draft.to = req.body.to.map(email => {
     return { email };
   });
-  // draft.cc = req.body.cc;
-  // draft.bcc = req.body.bcc;
+  draft.cc = req.body.cc.map(email => {
+    return { email };
+  });
+  draft.bcc = req.body.bcc.map(email => {
+    return { email };
+  });
   draft.body = req.body.body;
+  console.log(draft);
   try {
     // await draft.send();
     res.json({});

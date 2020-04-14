@@ -21,7 +21,7 @@
   cursor: auto;
 }
 
-.Message:first-child {
+.MessageAccordion:not(.divideTop) .Message:first-child {
   border-top-color: transparent;
 }
 
