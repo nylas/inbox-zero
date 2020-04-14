@@ -1,5 +1,6 @@
 import "normalize.css";
 import "../assets/style.css";
+import "react-quill/dist/quill.snow.css";
 import App from "next/app";
 import NProgress from "nprogress";
 import Router from "next/router";

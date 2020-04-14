@@ -86,3 +86,11 @@
   padding-bottom: 24px;
   border-bottom: 1px solid #979797;
 }
+
+.AttachmentWrapper {
+  padding: 32px 0 0 0;
+}
+
+.AttachmentWrapper > * {
+  margin: 0 0 10px 10px;
+}

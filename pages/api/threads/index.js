@@ -50,7 +50,10 @@ function simplifyThread(thread) {
   return {
     id: thread.id,
     subject: thread.subject,
-    fromName: thread.lastMessageReceived.from[0].name,
+    from: {
+      name: thread.lastMessageReceived.from[0].name,
+      email: thread.lastMessageReceived.from[0].email
+    },
     date: thread.lastMessageTimestamp,
     snippet: thread.snippet,
     unread: thread.unread,

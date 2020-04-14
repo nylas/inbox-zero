@@ -10,6 +10,9 @@ export default protect(async (req, res) => {
   }
   if (req.method === "PUT") {
     return updateThreadRequest(req, res);
+  }
+  if (req.method === "POST") {
+    return sendReplyRequest(req, res);
   } else {
     res.status(405).end();
   }
@@ -73,6 +76,28 @@ async function updateThreadRequest(req, res) {
   }
 }
 
+async function sendReplyRequest(req, res) {
+  const id = req.query.id;
+  const thread = await req.nylas.threads.find(id);
+  const draft = req.nylas.drafts.build();
+  // Send replies by setting replyToMessageId for a draft
+  draft.replyToMessageId = last(thread.messageIds);
+  draft.to = req.body.to.map(email => {
+    return { email };
+  });
+  // draft.cc = req.body.cc;
+  // draft.bcc = req.body.bcc;
+  draft.body = req.body.body;
+  try {
+    // await draft.send();
+    res.json({});
+  } catch (e) {
+    res.status(400).json({
+      error: e.message
+    });
+  }
+}
+
 async function getThreadById(nylas, id) {
   const thread = await nylas.threads.find(id);
   const lastMessageReceived = (
@@ -121,7 +146,11 @@ async function getThreadById(nylas, id) {
   return {
     id: thread.id,
     subject: thread.subject,
-    fromName: lastMessageReceived.from[0].name,
+    from: {
+      name: lastMessageReceived.from[0].name,
+      email: lastMessageReceived.from[0].email
+    },
+    participants: thread.participants,
     date: thread.lastMessageTimestamp,
     snippet: thread.snippet,
     unread: thread.unread,

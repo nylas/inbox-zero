@@ -5,6 +5,7 @@ import styles from "./Button.module.css";
 
 export default function Button({
   href,
+  as,
   variant = "primary",
   children,
   className = ""
@@ -12,7 +13,7 @@ export default function Button({
   const classes = classnames(styles.Button, styles[variant], className);
   if (href) {
     return (
-      <Link href={href}>
+      <Link href={href} as={as}>
         <a className={classes}>{children}</a>
       </Link>
     );

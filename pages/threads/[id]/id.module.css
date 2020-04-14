@@ -10,29 +10,11 @@
 .Subject {
   font-size: 24px;
   padding: 0 24px;
-}
-
-.Subject.disabled {
   font-weight: normal;
 }
 
-.AttachmentWrapper {
-  padding: 32px 0 0 0;
-}
-
-.Attachment {
-  display: inline-block;
-  border: 1px solid #9a9a9a;
-  box-sizing: border-box;
-  border-radius: 5px;
-  padding: 8px 32px;
-  color: inherit;
-  text-decoration: none;
-  margin: 0 10px 10px 0;
-}
-
-.Attachment:hover {
-  background: #e6e6e6;
+.Subject.unread {
+  font-weight: bold;
 }
 
 /** Sidebar content */
@@ -40,9 +22,11 @@
 .BackButton {
   font: inherit;
   font-weight: 600;
+  text-decoration: none;
   color: inherit;
   background: transparent;
   border: 0;
+  padding: 0;
   display: flex;
   align-items: center;
   margin-bottom: 40px;
@@ -84,9 +68,10 @@
 .Action__icon {
   margin-right: 24px;
   width: 30px;
+  display: flex;
 }
 
-.Action.disabled {
+.Action__button[disabled] {
   font-weight: normal;
   color: #585858;
   cursor: default;
@@ -173,4 +158,45 @@
 
 .Pagination__button:last-child .Pagination__icon {
   margin-left: 18px;
+}
+
+/** Reply */
+
+.ShowSecondaryEmailsButton {
+  font: inherit;
+  color: inherit;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+
+/** Editor */
+.Editor {
+  margin: 18px 0 48px 0;
+  border: 1px solid #e8e8e8;
+}
+
+.Editor :global(.quill) {
+  display: flex;
+  flex-direction: column-reverse;
+  border: 0;
+}
+
+.Editor :global(.ql-container) {
+  border: 0 !important;
+}
+
+.Editor :global(.ql-editor) {
+  min-height: 300px;
+
+  /** email styling */
+  font-size: 15px;
+  font-family: Arial, Helvetica, sans-serif;
+  color: #111;
+}
+
+.Editor :global(.ql-toolbar) {
+  border: 0 !important;
+  border-top: 1px solid #e8e8e8 !important;
+  padding: 12px;
 }

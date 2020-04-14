@@ -102,7 +102,7 @@ function Threads({ account, threads, currentPage, currentSearch }) {
           <List.Thread
             id={thread.id}
             unread={thread.unread}
-            fromName={thread.fromName}
+            fromName={thread.from.name}
             subject={thread.subject}
             snippet={thread.snippet}
             date={thread.date}

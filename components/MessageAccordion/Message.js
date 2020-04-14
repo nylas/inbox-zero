@@ -6,6 +6,7 @@ import styles from "./MessageAccordion.module.css";
 import attachment from "../../assets/attachment.svg";
 import formatDate from "../../utils/formatDate";
 import MessageFrame from "../MessageFrame";
+import Attachment from "../Attachment";
 
 function Message({
   id,
@@ -14,6 +15,7 @@ function Message({
   date,
   body,
   hasAttachments = false,
+  files,
   // added by parent
   isOpen = false,
   handleClick
@@ -47,9 +49,16 @@ function Message({
           {formatDate(new Date(date))}
         </span>
       </a>
-      {isOpen ? (
+      {isOpen && body ? (
         <div className={styles.MessageContents}>
           <MessageFrame content={body} />
+          {hasAttachments && (
+            <div className={styles.AttachmentWrapper}>
+              {files.map(file => (
+                <Attachment {...file} />
+              ))}
+            </div>
+          )}
         </div>
       ) : (
         ""

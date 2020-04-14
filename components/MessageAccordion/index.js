@@ -5,10 +5,10 @@ import Message from "./Message";
 import classnames from "classnames";
 
 function MessageAccordion({ children }) {
-  const [index, setIndex] = useState(children.length - 1);
+  const [index, setIndex] = useState(0);
 
   useEffect(() => {
-    setIndex(children.length - 1);
+    setIndex(0);
   }, [children]);
 
   return (

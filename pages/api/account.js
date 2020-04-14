@@ -6,7 +6,7 @@ import protect from "../../middleware/protect";
  */
 export default protect(async (req, res) => {
   try {
-    const unreadCount = await req.nylas.messages.count({
+    const unreadCount = await req.nylas.threads.count({
       in: "inbox",
       unread: true
     });
