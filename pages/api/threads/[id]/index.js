@@ -84,32 +84,39 @@ async function getThreadById(nylas, id) {
   )[0];
 
   const fromEmailAddress = lastMessageReceived.from[0].email;
-  const senderUnreadCount = await nylas.messages.count({
-    in: "inbox",
-    from: fromEmailAddress,
-    unread: true,
-    limit: 1
-  });
+
+  const [
+    senderUnreadCount,
+    allLabels,
+    previousThreads,
+    nextThreads
+  ] = await Promise.all([
+    nylas.messages.count({
+      in: "inbox",
+      from: fromEmailAddress,
+      unread: true,
+      limit: 1
+    }),
+    thread.labels ? nylas.labels.list() : Promise.resolve([]),
+    nylas.threads.list({
+      in: "inbox",
+      unread: true,
+      last_message_after: thread.lastMessageTimestamp,
+      limit: 1000
+    }),
+    nylas.threads.list({
+      in: "inbox",
+      unread: true,
+      last_message_before: thread.lastMessageTimestamp,
+      limit: 1
+    })
+  ]);
 
   const accountLabels = thread.labels
-    ? (await nylas.labels.list())
+    ? allLabels
         .filter(label => !defaultLabels.includes(label.name))
         .map(simplifyLabel)
     : [];
-
-  const previousThreads = await nylas.threads.list({
-    in: "inbox",
-    unread: true,
-    last_message_after: thread.lastMessageTimestamp,
-    limit: 1000
-  });
-
-  const nextThreads = await nylas.threads.list({
-    in: "inbox",
-    unread: true,
-    last_message_before: thread.lastMessageTimestamp,
-    limit: 1
-  });
 
   return {
     id: thread.id,
