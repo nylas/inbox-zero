@@ -6,7 +6,7 @@ import Link from "next/link";
 import Layout, { Header, Content, Sidebar } from "../../../layouts/Inbox";
 import Input from "../../../components/Input";
 import Button from "../../../components/Button";
-import List from "../../../components/MessageList";
+import List from "../../../components/MessageAccordion";
 import styles from "./id.module.css";
 import calendarIcon from "../../../assets/calendar.svg";
 import checkIcon from "../../../assets/check.svg";
@@ -24,36 +24,32 @@ import { useReferrer } from "../../../components/Referrer";
 import NProgress from "nprogress";
 
 export const getServerSideProps = withAuth(async context => {
-  const thread = await client(`/threads/${context.query.id}`, { context });
+  const [thread, messages] = await Promise.all([
+    client(`/threads/${context.query.id}`, { context }),
+    client(`/threads/${context.query.id}/messages`, { context })
+  ]);
 
   return {
     props: {
       account: context.account,
-      serverThread: thread
+      serverThread: thread,
+      messages
     }
   };
 });
 
-export default function detailsPage({ account, serverThread }) {
+export default function detailsPage({ account, serverThread, messages }) {
   const [thread, setThread] = useState(serverThread);
   const [showLabels, setShowLabels] = useState(false);
   useEffect(() => {
     setThread(serverThread);
   }, [serverThread]);
-
-  const activeIndex = thread.messages.findIndex(
-    ({ active }) => active === true
-  );
-
-  const message = thread.messages[activeIndex];
-  const prevMessages = thread.messages.slice(0, activeIndex + 1);
-  const nextMessages = thread.messages.slice(activeIndex + 1);
   const showToDoList = account.organizationUnit === "label";
 
   async function updateThread(update) {
     NProgress.start();
     try {
-      const updatedThread = await client(`/messages/${message.id}`, {
+      const updatedThread = await client(`/threads/${thread.id}`, {
         method: "PUT",
         body: update
       });
@@ -117,7 +113,7 @@ export default function detailsPage({ account, serverThread }) {
   return (
     <Layout>
       <Head>
-        <title>{message.subject} - Inbox Zero</title>
+        <title>{thread.subject} - Inbox Zero</title>
         <meta name="viewport" content="initial-scale=1.0, width=device-width" />
       </Head>
       <Header account={account} />
@@ -259,88 +255,92 @@ export default function detailsPage({ account, serverThread }) {
           </li>
         </ul>
       </Sidebar>
-      <Content>
-        <h2
-          className={classnames(styles.Subject, {
-            [styles.disabled]: thread.unread === false
-          })}
-        >
-          {message.subject}
-        </h2>
-        <List>
-          {prevMessages.map(message => (
-            <List.Message
-              id={message.id}
-              active={message.active}
-              fromName={message.from[0].name}
-              fromEmailAddress={message.from[0].email}
-              date={message.date}
-              hasAttachments={message.hasAttachments}
-            />
-          ))}
-        </List>
-        <div className={styles.Contents}>
-          <MessageFrame content={message.body} />
-          {message.hasAttachments && (
-            <div className={styles.AttachmentWrapper}>
-              {message.files.map(file => (
-                <a
-                  href={`/api/files/${file.filename}?id=${file.id}`}
-                  className={styles.Attachment}
-                  download
-                >
-                  {file.filename}
-                </a>
-              ))}
-            </div>
-          )}
-        </div>
-        <List divideTop={true}>
-          {nextMessages.map(message => (
-            <List.Message
-              id={message.id}
-              active={message.active}
-              fromName={message.from[0].name}
-              fromEmailAddress={message.from[0].email}
-              date={message.date}
-              hasAttachments={message.hasAttachments}
-            />
-          ))}
-        </List>
-        <div className={styles.Pagination}>
-          <button
-            className={styles.Pagination__button}
-            disabled={thread.previousThreadId === null}
-            onClick={() =>
-              Router.push(
-                `/messages/[id]`,
-                `/messages/${thread.previousThreadId}`
-              )
-            }
+      {
+        <Content>
+          <h2
+            className={classnames(styles.Subject, {
+              [styles.disabled]: thread.unread === false
+            })}
           >
-            <img
-              className={styles.Pagination__icon}
-              src={chevronLeftIcon}
-              alt="previous"
-            />{" "}
-            Previous
-          </button>
-          <button
-            className={styles.Pagination__button}
-            disabled={thread.nextThreadId === null}
-            onClick={() =>
-              Router.push(`/messages/[id]`, `/messages/${thread.nextThreadId}`)
-            }
-          >
-            Next{" "}
-            <img
-              className={styles.Pagination__icon}
-              src={chevronRightIcon}
-              alt="next"
-            />
-          </button>
-        </div>
-      </Content>
+            {thread.subject}
+          </h2>
+          <List>
+            {messages.map((message, i) => (
+              <List.Message
+                id={message.id}
+                active={message.active}
+                fromName={message.from[0].name}
+                fromEmailAddress={message.from[0].email}
+                date={message.date}
+                hasAttachments={message.hasAttachments}
+                isOpen={i === 1}
+                body={message.body}
+              />
+            ))}
+          </List>
+          {/*<div className={styles.Contents}>
+                <MessageFrame content={message.body} />
+                {message.hasAttachments && (
+                  <div className={styles.AttachmentWrapper}>
+                    {message.files.map(file => (
+                      <a
+                        href={`/api/files/${file.filename}?id=${file.id}`}
+                        className={styles.Attachment}
+                        download
+                      >
+                        {file.filename}
+                      </a>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <List divideTop={true}>
+                {nextMessages.map(message => (
+                  <List.Message
+                    id={message.id}
+                    active={message.active}
+                    fromName={message.from[0].name}
+                    fromEmailAddress={message.from[0].email}
+                    date={message.date}
+                    hasAttachments={message.hasAttachments}
+                  />
+                ))}
+              </List>*/}
+          <div className={styles.Pagination}>
+            <button
+              className={styles.Pagination__button}
+              disabled={thread.previousThreadId === null}
+              onClick={() =>
+                Router.push(
+                  `/threads/[id]`,
+                  `/threads/${thread.previousThreadId}`
+                )
+              }
+            >
+              <img
+                className={styles.Pagination__icon}
+                src={chevronLeftIcon}
+                alt="previous"
+              />{" "}
+              Previous
+            </button>
+            <button
+              className={styles.Pagination__button}
+              disabled={thread.nextThreadId === null}
+              onClick={() =>
+                Router.push(`/threads/[id]`, `/threads/${thread.nextThreadId}`)
+              }
+            >
+              Next{" "}
+              <img
+                className={styles.Pagination__icon}
+                src={chevronRightIcon}
+                alt="next"
+              />
+            </button>
+          </div>
+        </Content>
+      }
     </Layout>
   );
 }

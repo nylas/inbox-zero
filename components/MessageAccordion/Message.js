@@ -1,25 +1,31 @@
+import { Fragment } from "react";
 import Link from "next/link";
 import PropTypes from "prop-types";
 import classnames from "classnames";
-import styles from "./MessageList.module.css";
+import styles from "./MessageAccordion.module.css";
 import attachment from "../../assets/attachment.svg";
 import formatDate from "../../utils/formatDate";
+import MessageFrame from "../MessageFrame";
 
 function Message({
   id,
-  active,
   fromName,
   fromEmailAddress,
   date,
-  hasAttachments = false
+  body,
+  hasAttachments = false,
+  // added by parent
+  isOpen = false,
+  handleClick
 }) {
   return (
-    <Link href="/messages/[id]" as={`/messages/${id}`}>
+    <Fragment>
       <a
         className={classnames(
           styles.Message,
-          styles[active ? "active" : "inactive"]
+          styles[isOpen ? "isOpen" : "isClosed"]
         )}
+        onClick={handleClick}
       >
         <span className={classnames(styles.Message__iconCell)}>
           <span className={styles.Message__icon}>
@@ -41,13 +47,19 @@ function Message({
           {formatDate(new Date(date))}
         </span>
       </a>
-    </Link>
+      {isOpen ? (
+        <div className={styles.MessageContents}>
+          <MessageFrame content={body} />
+        </div>
+      ) : (
+        ""
+      )}
+    </Fragment>
   );
 }
 
 Message.propTypes = {
   id: PropTypes.string.isRequired,
-  active: PropTypes.bool.isRequired,
   fromName: PropTypes.string.isRequired,
   fromEmailAddress: PropTypes.string.isRequired,
   date: PropTypes.string.isRequired,

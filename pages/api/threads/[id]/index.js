@@ -1,4 +1,4 @@
-import protect from "../../../middleware/protect";
+import protect from "../../../../middleware/protect";
 
 /**
  * Retrieves a list of messages that belong to the current user which
@@ -6,79 +6,89 @@ import protect from "../../../middleware/protect";
  */
 export default protect(async (req, res) => {
   if (req.method === "GET") {
-    return getMessageRequest(req, res);
+    return getThreadRequest(req, res);
   }
   if (req.method === "PUT") {
-    return updateMessageRequest(req, res);
+    return updateThreadRequest(req, res);
   } else {
     res.status(405).end();
   }
 });
 
-async function getMessageRequest(req, res) {
+async function getThreadRequest(req, res) {
   try {
-    res.status(200).json(await getMessageById(req.nylas, req.query.id));
+    res.status(200).json(await getThreadById(req.nylas, req.query.id));
   } catch (err) {
     console.log(err);
     res.status(500).json({ error: "Something went wrong. Please try again." });
   }
 }
 
-async function updateMessageRequest(req, res) {
+async function updateThreadRequest(req, res) {
   try {
     const id = req.query.id;
-    const fullMessage = await req.nylas.messages.find(id);
+    const thread = await req.nylas.threads.find(id);
 
     if (req.body.unread === false) {
-      fullMessage.unread = false;
+      thread.unread = false;
     }
 
     if (req.body.labels) {
       // replace all but the default labels
-      const messageDefaultLabels = fullMessage.labels.filter(label =>
+      const threadDefaultLabels = thread.labels.filter(label =>
         defaultLabels.includes(label.name)
       );
-      fullMessage.labels = [...messageDefaultLabels, ...req.body.labels];
+      thread.labels = [...threadDefaultLabels, ...req.body.labels];
     }
 
     if (req.body.senderUnread === false) {
-      const fromEmailAddress = fullMessage.from[0].email;
-      const unreadMessages = await req.nylas.messages.list({
+      const lastMessageReceived = (
+        await req.nylas.messages.list({
+          thread_id: thread.id,
+          received_after: thread.lastMessageReceivedTimestamp - 1,
+          limit: 1
+        })
+      )[0];
+      const fromEmailAddress = lastMessageReceived.from[0].email;
+      const unreadThreads = await req.nylas.threads.list({
         in: "inbox",
         from: fromEmailAddress,
         unread: true
       });
 
       await Promise.all(
-        unreadMessages.map(message => {
-          message.unread = false;
-          return message.save();
+        unreadThreads.map(thread => {
+          thread.unread = false;
+          return thread.save();
         })
       );
     }
 
-    await fullMessage.save();
+    await thread.save();
 
-    const u = await getMessageById(req.nylas, id);
-
-    res.status(200).json(u);
+    res.status(200).json(await getThreadById(req.nylas, id));
   } catch (err) {
     console.log(err);
     res.status(500).json({ error: "Something went wrong. Please try again." });
   }
 }
 
-async function getMessageById(nylas, id) {
-  const fullMessage = await nylas.messages.find(id);
-  const fromEmailAddress = fullMessage.from[0].email;
-  const thread = await nylas.threads.find(fullMessage.threadId, null, {
-    view: "expanded"
-  });
+async function getThreadById(nylas, id) {
+  const thread = await nylas.threads.find(id);
+  const lastMessageReceived = (
+    await nylas.messages.list({
+      thread_id: thread.id,
+      received_after: thread.lastMessageReceivedTimestamp - 1,
+      limit: 1
+    })
+  )[0];
 
+  const fromEmailAddress = lastMessageReceived.from[0].email;
   const senderUnreadCount = await nylas.messages.count({
     in: "inbox",
     from: fromEmailAddress,
-    unread: true
+    unread: true,
+    limit: 1
   });
 
   const accountLabels = thread.labels
@@ -102,6 +112,13 @@ async function getMessageById(nylas, id) {
   });
 
   return {
+    id: thread.id,
+    subject: thread.subject,
+    fromName: lastMessageReceived.from[0].name,
+    date: thread.lastMessageTimestamp,
+    snippet: thread.snippet,
+    unread: thread.unread,
+    hasAttachments: thread.hasAttachments,
     unread: thread.unread,
     senderUnread: senderUnreadCount > 0,
     labels: accountLabels.map(label => {
@@ -110,37 +127,9 @@ async function getMessageById(nylas, id) {
         checked: !!thread.labels.find(({ id }) => id === label.id)
       };
     }),
-    messages: thread.messages.map(message => {
-      const isActiveMessage = message.id === fullMessage.id;
-
-      return {
-        active: isActiveMessage,
-        ...simplifyMessage(isActiveMessage ? fullMessage : message)
-      };
-    }),
     previousThreadId:
-      previousThreads.length > 0
-        ? last(last(previousThreads).messageIds)
-        : null,
-    nextThreadId:
-      nextThreads.length > 0 ? last(nextThreads[0].messageIds) : null
-  };
-}
-
-function simplifyMessage(message) {
-  return {
-    id: message.id,
-    subject: message.subject,
-    from: message.from,
-    date: message.date,
-    unread: message.unread,
-    body: message.body,
-    hasAttachments: message.hasAttachments || message.files.length > 0,
-    files: message.files
-      ? message.files.map(({ filename, id }) => {
-          return { filename: filename || "noname", id };
-        })
-      : []
+      previousThreads.length > 0 ? last(previousThreads).id : null,
+    nextThreadId: nextThreads.length > 0 ? nextThreads[0].id : null
   };
 }
 
