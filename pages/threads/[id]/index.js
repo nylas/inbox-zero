@@ -1,3 +1,4 @@
+import fetch from "isomorphic-unfetch";
 import { Fragment, useState, useRef, useEffect } from "react";
 import client from "../../../utils/client";
 import Head from "next/head";
@@ -19,12 +20,21 @@ import checkboxUncheckedIcon from "../../../assets/checkbox_unchecked.svg";
 import checkboxCheckedIcon from "../../../assets/checkbox_checked.svg";
 import addAttachmentIcon from "../../../assets/add_attachment.svg";
 import addIcon from "../../../assets/add.svg";
+import schedulePageIcon from "../../../assets/schedule_page.svg";
 import withAuth from "../../../utils/withAuth";
 import classnames from "classnames";
 import Attachment from "../../../components/Attachment";
 import { useReferrer } from "../../../components/Referrer";
 import dynamic from "next/dynamic";
 import NProgress from "nprogress";
+
+function loadScript(src) {
+  const body = document.body || document.querySelector("body");
+  const script = document.createElement("script");
+  script.src = src;
+
+  body.appendChild(script);
+}
 
 const Quill = dynamic(import("react-quill"), {
   ssr: false,
@@ -317,8 +327,85 @@ function Action({ disabled, icon, onClick, onClickIcon = null, children }) {
   );
 }
 
-function DetailsSidebar({ account, thread, setThread, setShowReply }) {
+function SchedulerPages({
+  account,
+  schedulerPages,
+  setShowReply,
+  state,
+  setState
+}) {
+  return (
+    <ul className={styles.SchedulePages}>
+      {schedulerPages.map(page => (
+        <li className={styles.SchedulePage}>
+          <span className={styles.SchedulePage__icon}>
+            <img src={schedulePageIcon} />
+          </span>
+          <span>
+            <button
+              className={styles.SchedulePage__button}
+              onClick={() => {
+                NProgress.start();
+                setShowReply(true);
+                NProgress.done();
+                setState({
+                  ...state,
+                  body: `<a href="https://schedule.nylas.com/${page.slug}">${page.name}</a>`
+                });
+              }}
+            >
+              {page.name}
+            </button>
+            <a
+              className={styles.SchedulePage__link}
+              target="_blank"
+              href={`https://schedule.nylas.com/${page.slug}`}
+            >
+              schedule.nylas.com/{page.slug}
+            </a>
+          </span>
+        </li>
+      ))}
+      <li>
+        <button
+          className={styles.ScheduleEditorButton}
+          onClick={() => {
+            nylas.scheduler.show({
+              auth: {
+                accessToken: account.accessToken
+              },
+              style: {
+                // Style the schedule editor
+                tintColor: "#32325d",
+                backgroundColor: "white"
+              },
+              defaults: {
+                event: {
+                  title: "30-min Coffee Meeting",
+                  duration: 30
+                }
+              }
+            });
+          }}
+        >
+          Open Schedule Editor »
+        </button>
+      </li>
+    </ul>
+  );
+}
+
+function DetailsSidebar({
+  account,
+  thread,
+  setThread,
+  setShowReply,
+  schedulerPages,
+  state,
+  setState
+}) {
   const [showLabels, setShowLabels] = useState(false);
+  const [showSchedulerPages, setShowSchedulerPages] = useState(true);
   const showToDoList = account.organizationUnit === "label";
 
   async function updateThread(update) {
@@ -398,9 +485,27 @@ function DetailsSidebar({ account, thread, setThread, setShowReply }) {
         Reply
       </Button>
       <ActionList>
-        <Action icon={calendarIcon} onClick={() => {}}>
+        <Action
+          icon={calendarIcon}
+          onClick={() => {
+            setShowSchedulerPages(!showSchedulerPages);
+          }}
+        >
           Schedule Meeting »
         </Action>
+        {showSchedulerPages ? (
+          <li>
+            <SchedulerPages
+              schedulerPages={schedulerPages}
+              account={account}
+              setShowReply={setShowReply}
+              state={state}
+              setState={setState}
+            />
+          </li>
+        ) : (
+          ""
+        )}
         {showToDoList ? (
           <Action icon={checkIcon} onClick={() => setShowLabels(!showLabels)}>
             Add to ToDo List »
@@ -440,21 +545,29 @@ function DetailsSidebar({ account, thread, setThread, setShowReply }) {
 }
 
 export const getServerSideProps = withAuth(async context => {
-  const [thread, messages] = await Promise.all([
+  const [thread, messages, schedulerPages] = await Promise.all([
     client(`/threads/${context.query.id}`, { context }),
-    client(`/threads/${context.query.id}/messages`, { context })
+    client(`/threads/${context.query.id}/messages`, { context }),
+    fetch("https://schedule.api.nylas.com/manage/pages", {
+      headers: { Authorization: `Bearer ${context.account.accessToken}` }
+    }).then(response => response.json())
   ]);
-
   return {
     props: {
       account: context.account,
       serverThread: thread,
-      messages
+      messages,
+      schedulerPages
     }
   };
 });
 
-export default function threadPage({ account, serverThread, messages }) {
+export default function threadPage({
+  account,
+  serverThread,
+  messages,
+  schedulerPages
+}) {
   const [showReply, setShowReply] = useState(false);
   const [thread, setThread] = useState(serverThread);
   useEffect(() => {
@@ -488,15 +601,16 @@ export default function threadPage({ account, serverThread, messages }) {
     const allEmails = [...toEmails, ...ccEmails, ...bccEmails];
 
     const invalidEmail = allEmails.find(email => !email.includes("@"));
-    // if (invalidEmail) {
-    //   NProgress.done();
-    //   return alert(`${invalidEmail} is not a valid email.`)
-    // }
 
-    // if (allEmails.length === 0) {
-    //   NProgress.done();
-    //   return alert(`Please specify at least one recipient.`)
-    // }
+    if (invalidEmail) {
+      NProgress.done();
+      return alert(`${invalidEmail} is not a valid email.`);
+    }
+
+    if (allEmails.length === 0) {
+      NProgress.done();
+      return alert(`Please specify at least one recipient.`);
+    }
 
     try {
       await client(`/threads/${thread.id}`, {
@@ -515,6 +629,12 @@ export default function threadPage({ account, serverThread, messages }) {
       alert(error.error);
     }
   }
+
+  useEffect(() => {
+    loadScript(
+      "https://schedule.nylas.com/schedule-editor/v1.0/schedule-editor.js"
+    );
+  }, []);
 
   return (
     <Layout>
@@ -536,6 +656,9 @@ export default function threadPage({ account, serverThread, messages }) {
           thread={thread}
           setThread={setThread}
           setShowReply={setShowReply}
+          schedulerPages={schedulerPages}
+          setState={setFormState}
+          state={formState}
         />
       )}
       <Content>

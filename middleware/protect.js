@@ -11,6 +11,7 @@ export default function protect(handler, { reject = true } = {}) {
       );
       req.nylas = Nylas.with(accessToken);
       req.account = await req.nylas.account.get();
+      req.account.accessToken = accessToken;
 
       return handler(req, res, ...restArgs);
     } catch (err) {

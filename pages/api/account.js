@@ -15,7 +15,8 @@ export default protect(async (req, res) => {
       name: req.account.name,
       emailAddress: req.account.emailAddress,
       organizationUnit: req.account.organizationUnit,
-      unreadCount: unreadCount
+      unreadCount: unreadCount,
+      accessToken: req.account.accessToken
     });
   } catch (err) {
     console.log(err);

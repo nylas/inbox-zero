@@ -9,9 +9,7 @@ import styles from "./login.module.css";
 import cookie from "cookie";
 
 export function getServerSideProps(context) {
-  const cookies = cookie.parse(
-    context.req ? context.req.headers.cookie : document.cookie
-  );
+  const cookies = cookie.parse(context.req.headers.cookie || "");
 
   if (cookies.token) {
     redirect("/", { context });

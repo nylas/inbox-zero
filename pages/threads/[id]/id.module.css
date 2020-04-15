@@ -196,3 +196,63 @@
   border-top: 1px solid #e8e8e8 !important;
   padding: 12px;
 }
+
+/** Schedule Meeting */
+
+.SchedulePages {
+  margin: 18px 0 40px 54px;
+  padding: 0;
+  list-style: none;
+}
+
+.SchedulePage {
+  display: flex;
+  align-items: flex-start;
+}
+
+.SchedulePage + .SchedulePage {
+  margin-top: 8px;
+}
+
+.SchedulePage__icon {
+  display: flex;
+  margin: 4px 12px 0 0;
+}
+
+.SchedulePage__button {
+  font: inherit;
+  color: inherit;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  text-align: inherit;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  width: 100%;
+}
+
+.SchedulePage__link {
+  font-size: 11px;
+  line-height: 28px;
+  text-decoration-line: underline;
+  color: #787878;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ScheduleEditorButton {
+  font: inherit;
+  color: inherit;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  margin: 12px 0 0 0;
+  text-align: inherit;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  width: 100%;
+}
