@@ -17,7 +17,7 @@ export default protect(async (req, res) => {
 
     const threads = await (search.length > 0
       ? req.nylas.threads.search(search, { ...pagination })
-      : await req.nylas.threads.list({
+      : req.nylas.threads.list({
           in: "inbox",
           unread: true,
           ...pagination
@@ -39,7 +39,27 @@ export default protect(async (req, res) => {
       })
     );
 
-    res.status(200).json(expandedThreads.map(simplifyThread));
+    // get the first item on the next page
+    const hasNext =
+      (
+        await (search.length > 0
+          ? req.nylas.threads.search(search, {
+              limit: 1,
+              offset: page * limit
+            })
+          : req.nylas.threads.list({
+              in: "inbox",
+              unread: true,
+              limit: 1,
+              offset: page * limit
+            }))
+      ).length > 0;
+
+    res.status(200).json({
+      hasPrevious: page > 1,
+      hasNext,
+      threads: expandedThreads.map(simplifyThread)
+    });
   } catch (err) {
     console.log(err);
     res.status(500).json({ error: "Something went wrong. Please try again." });

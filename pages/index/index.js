@@ -18,10 +18,13 @@ import Input from "../../components/Input";
 export const getServerSideProps = withAuth(async context => {
   const currentPage = parseInt(context.query.page) || 1;
   const search = context.query.search || "";
-  const threads = await client(
-    `/threads?page=${currentPage}&search=${search}`,
-    { context }
-  );
+  const {
+    hasNext,
+    hasPrevious,
+    threads
+  } = await client(`/threads?page=${currentPage}&search=${search}`, {
+    context
+  });
 
   // redirect home if we are on a page that doesn't have any threads
   if (threads.length === 0 && currentPage > 1) {
@@ -33,7 +36,9 @@ export const getServerSideProps = withAuth(async context => {
       account: context.account,
       currentPage,
       currentSearch: search,
-      threads
+      threads,
+      hasNext,
+      hasPrevious
     }
   };
 });
@@ -89,7 +94,14 @@ function EmptyState() {
   return <img src={completeIcon} alt="Inbox zero achieved!" />;
 }
 
-function Threads({ account, threads, currentPage, currentSearch }) {
+function Threads({
+  account,
+  threads,
+  currentPage,
+  currentSearch,
+  hasNext,
+  hasPrevious
+}) {
   const previousPage = currentPage > 1 ? currentPage - 1 : 1;
   const nextPage = currentPage + 1;
   const maybeSearch =
@@ -113,7 +125,7 @@ function Threads({ account, threads, currentPage, currentSearch }) {
       <div className={styles.Pagination}>
         <button
           className={styles.Pagination__button}
-          disabled={currentPage <= 1}
+          disabled={!hasPrevious}
           onClick={() =>
             Router.push(`/`, `/?page=${previousPage}${maybeSearch}`)
           }
@@ -123,7 +135,7 @@ function Threads({ account, threads, currentPage, currentSearch }) {
         <div>Page {currentPage}</div>
         <button
           className={styles.Pagination__button}
-          disabled={threads.length < 6}
+          disabled={!hasNext}
           onClick={() => Router.push(`/`, `/?page=${nextPage}${maybeSearch}`)}
         >
           <img src={chevronRightIcon} alt="next" />

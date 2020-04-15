@@ -26,15 +26,15 @@ import { useReferrer } from "../../../components/Referrer";
 import dynamic from "next/dynamic";
 import NProgress from "nprogress";
 
-const ReactQuill = dynamic(import("react-quill"), {
+const Quill = dynamic(import("react-quill"), {
   ssr: false,
-  loading: () => <div />
+  loading: () => <div style={{ height: 340 }} />
 });
 
 const Editor = props => {
   return (
     <div className={styles.Editor}>
-      <ReactQuill theme="snow" {...props} />
+      <Quill theme="snow" {...props} />
     </div>
   );
 };
