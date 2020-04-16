@@ -1,6 +1,6 @@
 import fetch from "isomorphic-unfetch";
 
-export default async function client(
+export default async function request(
   endpoint,
   { body, context, ...customConfig } = {}
 ) {

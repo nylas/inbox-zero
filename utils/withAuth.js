@@ -1,4 +1,4 @@
-import client from "./client";
+import request from "./request";
 import redirect from "./redirect";
 
 export default function withAuth(
@@ -10,7 +10,7 @@ export default function withAuth(
 ) {
   return async function getServerSideProps(context, ...restArgs) {
     try {
-      const account = await client("/account", { context });
+      const account = await request("/account", { context });
 
       context.account = account;
       return handler(context, ...restArgs);

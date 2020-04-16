@@ -1,7 +1,7 @@
 import { Fragment, useState } from "react";
 import Link from "next/link";
 import Router from "next/router";
-import client from "../../utils/client";
+import request from "../../utils/request";
 import redirect from "../../utils/redirect";
 import Head from "next/head";
 import Layout, { Header, Content, Sidebar } from "../../layouts/Inbox";
@@ -18,13 +18,12 @@ import Input from "../../components/Input";
 export const getServerSideProps = withAuth(async context => {
   const currentPage = parseInt(context.query.page) || 1;
   const search = context.query.search || "";
-  const {
-    hasNext,
-    hasPrevious,
-    threads
-  } = await client(`/threads?page=${currentPage}&search=${search}`, {
-    context
-  });
+  const { hasNext, hasPrevious, threads } = await request(
+    `/threads?page=${currentPage}&search=${search}`,
+    {
+      context
+    }
+  );
 
   // redirect home if we are on a page that doesn't have any threads
   if (threads.length === 0 && currentPage > 1) {

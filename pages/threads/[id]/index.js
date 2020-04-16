@@ -1,6 +1,6 @@
 import fetch from "isomorphic-unfetch";
 import { Fragment, useState, useRef, useEffect } from "react";
-import client from "../../../utils/client";
+import request from "../../../utils/request";
 import Head from "next/head";
 import Router from "next/router";
 import Link from "next/link";
@@ -86,7 +86,7 @@ function ReplySidebar({ triggerSubmit, setShowReply, state, setState }) {
   }
 
   async function deleteFile(id) {
-    await client(`/files/${id}`, {
+    await request(`/files/${id}`, {
       method: "DELETE"
     });
 
@@ -411,7 +411,7 @@ function DetailsSidebar({
   async function updateThread(update) {
     NProgress.start();
     try {
-      const updatedThread = await client(`/threads/${thread.id}`, {
+      const updatedThread = await request(`/threads/${thread.id}`, {
         method: "PUT",
         body: update
       });
@@ -441,7 +441,7 @@ function DetailsSidebar({
   async function createLabel(displayName) {
     NProgress.start();
     try {
-      const newLabel = await client("/labels", {
+      const newLabel = await request("/labels", {
         body: { displayName }
       });
 
@@ -546,8 +546,8 @@ function DetailsSidebar({
 
 export const getServerSideProps = withAuth(async context => {
   const [thread, messages, schedulerPages] = await Promise.all([
-    client(`/threads/${context.query.id}`, { context }),
-    client(`/threads/${context.query.id}/messages`, { context }),
+    request(`/threads/${context.query.id}`, { context }),
+    request(`/threads/${context.query.id}/messages`, { context }),
     fetch("https://schedule.api.nylas.com/manage/pages", {
       headers: { Authorization: `Bearer ${context.account.accessToken}` }
     }).then(response => response.json())
@@ -613,7 +613,7 @@ export default function threadPage({
     }
 
     try {
-      await client(`/threads/${thread.id}`, {
+      await request(`/threads/${thread.id}`, {
         body: {
           to: toEmails,
           cc: ccEmails,
