@@ -15,29 +15,41 @@ export default protect(async (req, res) => {
       offset: (page - 1) * limit
     };
 
-    const threads = await (search.length > 0
+    let threads = await (search.length > 0
       ? req.nylas.threads.search(search, { ...pagination })
-      : req.nylas.threads.list({
-          in: "inbox",
-          unread: true,
-          ...pagination
-        }));
+      : req.nylas.threads.list(
+          {
+            in: "inbox",
+            unread: true,
+            view: "expanded",
+            ...pagination
+          },
+          null
+        ));
 
-    const expandedThreads = await Promise.all(
-      threads.map(async thread => {
-        const lastMessageReceived = await req.nylas.messages.list({
-          thread_id: thread.id,
-          received_after: thread.lastMessageReceivedTimestamp - 1,
-          limit: 1
-        });
+    if (search.length > 0) {
+      threads = await Promise.all(
+        threads.map(async thread => {
+          const messages = await req.nylas.messages.list({
+            thread_id: thread.id
+          });
 
-        thread.lastMessageReceived = lastMessageReceived.length
-          ? lastMessageReceived[0]
-          : "";
+          thread.messages = messages;
 
-        return thread;
-      })
-    );
+          return thread;
+        })
+      );
+    }
+
+    threads = threads.map(thread => {
+      const firstMessageReceived =
+        thread.messages.find(message => {
+          return message.from[0].email !== req.account.emailAddress;
+        }) || thread.messages[0];
+
+      thread.firstMessageReceived = firstMessageReceived;
+      return thread;
+    });
 
     // get the first item on the next page
     const hasNext =
@@ -58,7 +70,7 @@ export default protect(async (req, res) => {
     res.status(200).json({
       hasPrevious: page > 1,
       hasNext,
-      threads: expandedThreads.map(simplifyThread)
+      threads: threads.map(simplifyThread)
     });
   } catch (err) {
     console.log(err);
@@ -71,8 +83,8 @@ function simplifyThread(thread) {
     id: thread.id,
     subject: thread.subject,
     from: {
-      name: thread.lastMessageReceived.from[0].name,
-      email: thread.lastMessageReceived.from[0].email
+      name: thread.firstMessageReceived.from[0].name,
+      email: thread.firstMessageReceived.from[0].email
     },
     date: thread.lastMessageTimestamp,
     snippet: thread.snippet,

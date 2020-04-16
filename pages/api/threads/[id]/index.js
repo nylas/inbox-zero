@@ -20,7 +20,13 @@ export default protect(async (req, res) => {
 
 async function getThreadRequest(req, res) {
   try {
-    res.status(200).json(await getThreadById(req.nylas, req.query.id));
+    res.status(200).json(
+      await getThreadById({
+        nylas: req.nylas,
+        id: req.query.id,
+        account: req.account
+      })
+    );
   } catch (err) {
     console.log(err);
     res.status(500).json({ error: "Something went wrong. Please try again." });
@@ -30,7 +36,7 @@ async function getThreadRequest(req, res) {
 async function updateThreadRequest(req, res) {
   try {
     const id = req.query.id;
-    const thread = await req.nylas.threads.find(id);
+    const thread = await req.nylas.threads.find(id, null, { view: "expanded" });
 
     if (req.body.unread === false) {
       thread.unread = false;
@@ -45,14 +51,11 @@ async function updateThreadRequest(req, res) {
     }
 
     if (req.body.senderUnread === false) {
-      const lastMessageReceived = (
-        await req.nylas.messages.list({
-          thread_id: thread.id,
-          received_after: thread.lastMessageReceivedTimestamp - 1,
-          limit: 1
-        })
-      )[0];
-      const fromEmailAddress = lastMessageReceived.from[0].email;
+      const firstMessageReceived =
+        thread.messages.find(message => {
+          return message.from[0].email !== req.account.emailAddress;
+        }) || thread.messages[0];
+      const fromEmailAddress = firstMessageReceived.from[0].email;
       const unreadThreads = await req.nylas.threads.list({
         in: "inbox",
         from: fromEmailAddress,
@@ -69,7 +72,13 @@ async function updateThreadRequest(req, res) {
 
     await thread.save();
 
-    res.status(200).json(await getThreadById(req.nylas, id));
+    res.status(200).json(
+      await getThreadById({
+        nylas: req.nylas,
+        id: req.query.id,
+        account: req.account
+      })
+    );
   } catch (err) {
     console.log(err);
     res.status(500).json({ error: "Something went wrong. Please try again." });
@@ -107,17 +116,14 @@ async function sendReplyRequest(req, res) {
   }
 }
 
-async function getThreadById(nylas, id) {
-  const thread = await nylas.threads.find(id);
-  const lastMessageReceived = (
-    await nylas.messages.list({
-      thread_id: thread.id,
-      received_after: thread.lastMessageReceivedTimestamp - 1,
-      limit: 1
-    })
-  )[0];
+async function getThreadById({ nylas, id, account }) {
+  const thread = await nylas.threads.find(id, null, { view: "expanded" });
+  const firstMessageReceived =
+    thread.messages.find(message => {
+      return message.from[0].email !== account.emailAddress;
+    }) || thread.messages[0];
 
-  const fromEmailAddress = lastMessageReceived.from[0].email;
+  const fromEmailAddress = firstMessageReceived.from[0].email;
 
   const [
     senderUnreadCount,
@@ -156,8 +162,8 @@ async function getThreadById(nylas, id) {
     id: thread.id,
     subject: thread.subject,
     from: {
-      name: lastMessageReceived.from[0].name,
-      email: lastMessageReceived.from[0].email
+      name: firstMessageReceived.from[0].name,
+      email: firstMessageReceived.from[0].email
     },
     participants: thread.participants,
     date: thread.lastMessageTimestamp,

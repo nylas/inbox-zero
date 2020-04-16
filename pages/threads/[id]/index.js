@@ -405,7 +405,7 @@ function DetailsSidebar({
   setState
 }) {
   const [showLabels, setShowLabels] = useState(false);
-  const [showSchedulerPages, setShowSchedulerPages] = useState(true);
+  const [showSchedulerPages, setShowSchedulerPages] = useState(false);
   const showToDoList = account.organizationUnit === "label";
 
   async function updateThread(update) {
