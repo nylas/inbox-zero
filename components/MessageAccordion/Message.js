@@ -31,7 +31,7 @@ function Message({
       >
         <span className={classnames(styles.Message__iconCell)}>
           <span className={styles.Message__icon}>
-            {fromName.charAt(0).toUpperCase()}
+            {fromName && fromName.charAt(0).toUpperCase()}
           </span>
         </span>
         <span className={classnames(styles.Message__fromName)}>{fromName}</span>

@@ -111,6 +111,7 @@ function Threads({
       <List>
         {threads.map(thread => (
           <List.Thread
+            key={thread.id}
             id={thread.id}
             unread={thread.unread}
             fromName={thread.from.name}

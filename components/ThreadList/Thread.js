@@ -24,7 +24,7 @@ function Thread({
       >
         <span className={classnames(styles.Thread__iconCell)}>
           <span className={styles.Thread__icon}>
-            {fromName.charAt(0).toUpperCase()}
+            {fromName && fromName.charAt(0).toUpperCase()}
           </span>
         </span>
         <span className={classnames(styles.Thread__fromName)}>{fromName}</span>

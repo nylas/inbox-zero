@@ -36,6 +36,25 @@ function loadScript(src) {
   body.appendChild(script);
 }
 
+function onRemove(element, callback) {
+  const parent = element.parentNode;
+  if (!parent) throw new Error("The node must already be attached");
+
+  const obs = new MutationObserver(mutations => {
+    for (const mutation of mutations) {
+      for (const el of mutation.removedNodes) {
+        if (el === element) {
+          obs.disconnect();
+          callback();
+        }
+      }
+    }
+  });
+  obs.observe(parent, {
+    childList: true
+  });
+}
+
 const Quill = dynamic(import("react-quill"), {
   ssr: false,
   loading: () => <div style={{ height: 340 }} />
@@ -124,6 +143,7 @@ function ReplySidebar({ triggerSubmit, setShowReply, state, setState }) {
         {state.files.map(file => {
           return (
             <Action
+              key={file.id}
               icon={removeIcon}
               onClickIcon={() => {
                 deleteFile(file.id);
@@ -139,7 +159,9 @@ function ReplySidebar({ triggerSubmit, setShowReply, state, setState }) {
 }
 
 function ReplyForm({ state, setState }) {
-  const [showSecondaryEmails, setShowSecondaryEmails] = useState(false);
+  const [showSecondaryEmails, setShowSecondaryEmails] = useState(
+    state.cc.length > 0 || state.bcc.length > 0
+  );
 
   return (
     <Fragment>
@@ -256,7 +278,7 @@ function Labels({ labels, addLabel, removeLabel, createLabel }) {
   return (
     <ul className={styles.Labels}>
       {labels.map(label => (
-        <li className={styles.Label}>
+        <li className={styles.Label} key={label.id}>
           <button
             className={styles.Label__button}
             onClick={() => {
@@ -330,6 +352,7 @@ function Action({ disabled, icon, onClick, onClickIcon = null, children }) {
 function SchedulerPages({
   account,
   schedulerPages,
+  setSchedulerPages,
   setShowReply,
   state,
   setState
@@ -337,7 +360,7 @@ function SchedulerPages({
   return (
     <ul className={styles.SchedulePages}>
       {schedulerPages.map(page => (
-        <li className={styles.SchedulePage}>
+        <li className={styles.SchedulePage} key={page.slug}>
           <span className={styles.SchedulePage__icon}>
             <img src={schedulePageIcon} />
           </span>
@@ -386,6 +409,17 @@ function SchedulerPages({
                 }
               }
             });
+
+            onRemove(document.querySelector(".nylas-backdrop"), async () => {
+              const newSchedulerPages = await fetch(
+                "https://schedule.api.nylas.com/manage/pages",
+                {
+                  headers: { Authorization: `Bearer ${account.accessToken}` }
+                }
+              ).then(response => response.json());
+
+              setSchedulerPages(newSchedulerPages);
+            });
           }}
         >
           Open Schedule Editor »
@@ -401,6 +435,7 @@ function DetailsSidebar({
   setThread,
   setShowReply,
   schedulerPages,
+  setSchedulerPages,
   state,
   setState
 }) {
@@ -497,6 +532,7 @@ function DetailsSidebar({
           <li>
             <SchedulerPages
               schedulerPages={schedulerPages}
+              setSchedulerPages={setSchedulerPages}
               account={account}
               setShowReply={setShowReply}
               state={state}
@@ -557,7 +593,7 @@ export const getServerSideProps = withAuth(async context => {
       account: context.account,
       serverThread: thread,
       messages,
-      schedulerPages
+      serverSchedulerPages: schedulerPages
     }
   };
 });
@@ -566,12 +602,14 @@ export default function threadPage({
   account,
   serverThread,
   messages,
-  schedulerPages
+  serverSchedulerPages
 }) {
   const [showReply, setShowReply] = useState(false);
   const [thread, setThread] = useState(serverThread);
+  const [schedulerPages, setSchedulerPages] = useState(serverSchedulerPages);
   useEffect(() => {
     setThread(serverThread);
+    setSchedulerPages(serverSchedulerPages);
   }, [serverThread]);
 
   const [formState, setFormState] = useState({
@@ -657,6 +695,7 @@ export default function threadPage({
           setThread={setThread}
           setShowReply={setShowReply}
           schedulerPages={schedulerPages}
+          setSchedulerPages={setSchedulerPages}
           setState={setFormState}
           state={formState}
         />
@@ -667,6 +706,7 @@ export default function threadPage({
         <Accordion divideTop={showReply}>
           {messages.map(message => (
             <Accordion.Message
+              key={message.id}
               id={message.id}
               fromName={message.from[0].name}
               fromEmailAddress={message.from[0].email}
