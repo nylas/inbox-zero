@@ -1,3 +1,4 @@
+import NextError from "next/error";
 import fetch from "isomorphic-unfetch";
 import { Fragment, useState, useRef, useEffect } from "react";
 import request from "../../../utils/request";
@@ -589,7 +590,7 @@ function DetailsSidebar({
         </Action>
         <Action
           icon={doubleFlagIcon}
-          disabled={thread.senderUnreadCount === false}
+          disabled={thread.senderUnread === false}
           onClick={() => updateThread({ senderUnread: false })}
         >
           Mark All Emails From Sender as Read »
@@ -600,26 +601,35 @@ function DetailsSidebar({
 }
 
 export const getServerSideProps = withAuth(async context => {
-  const [thread, schedulerPages] = await Promise.all([
-    request(`/threads/${context.query.id}`, { context }),
-    fetch("https://schedule.api.nylas.com/manage/pages", {
-      headers: { Authorization: `Bearer ${context.account.accessToken}` }
-    }).then(response => response.json())
-  ]);
-  return {
-    props: {
-      account: context.account,
-      serverThread: thread,
-      serverSchedulerPages: schedulerPages
-    }
-  };
+  try {
+    const [thread, schedulerPages] = await Promise.all([
+      request(`/threads/${context.query.id}`, { context }),
+      fetch("https://schedule.api.nylas.com/manage/pages", {
+        headers: { Authorization: `Bearer ${context.account.accessToken}` }
+      }).then(response => response.json())
+    ]);
+    return {
+      props: {
+        account: context.account,
+        serverThread: thread,
+        serverSchedulerPages: schedulerPages
+      }
+    };
+  } catch (e) {
+    return { props: { errorCode: 404 } };
+  }
 });
 
 export default function ThreadPage({
+  errorCode,
   account,
   serverThread,
   serverSchedulerPages
 }) {
+  if (errorCode) {
+    return <NextError statusCode={errorCode} />;
+  }
+
   const [showReply, setShowReply] = useState(false);
   const [thread, setThread] = useState(serverThread);
   const messages = thread.messages;
