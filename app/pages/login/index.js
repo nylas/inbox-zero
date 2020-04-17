@@ -11,7 +11,7 @@ import cookie from "cookie";
 export function getServerSideProps(context) {
   const cookies = cookie.parse(context.req.headers.cookie || "");
 
-  if (cookies.token) {
+  if (cookies.accessToken) {
     redirect("/", { context });
   }
 
