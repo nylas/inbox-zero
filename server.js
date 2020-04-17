@@ -4,7 +4,7 @@
  * This is the entry file for this project. It starts up the Next.js
  * app and express.js server.
  *
- * To run `npm run dev` to get started.
+ * Run `npm run dev` to get started.
  *
  * Learn more: https://github.com/nylas/inbox-zero
  */

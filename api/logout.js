@@ -11,11 +11,11 @@ module.exports = async (req, res) => {
   try {
     const accessToken = req.cookies.accessToken;
     const nylas = Nylas.with(accessToken);
-    const account = await req.nylas.account.get();
+    const account = await nylas.account.get();
 
     if (account) {
       // get top-level nylas account and revoke our access
-      const account = await Nylas.accounts.find(req.account.id);
+      const account = await Nylas.accounts.find(account.id);
       await account.revokeAll();
     }
   } catch (error) {
