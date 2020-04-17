@@ -5,16 +5,16 @@ import styles from "./Button.module.css";
 
 export default function Button({
   href,
-  as,
-  variant = "primary",
+  as: asHref,
   children,
+  variant = "primary",
   className = "",
   ...props
 }) {
   const classes = classnames(styles.Button, styles[variant], className);
   if (href) {
     return (
-      <Link href={href} as={as}>
+      <Link href={href} as={asHref}>
         <a className={classes}>{children}</a>
       </Link>
     );
@@ -28,6 +28,8 @@ export default function Button({
 }
 
 Button.propTypes = {
-  children: PropTypes.node.isRequired,
-  variant: PropTypes.oneOf(["primary", "secondary"])
+  href: PropTypes.string,
+  as: PropTypes.string,
+  variant: PropTypes.oneOf(["primary", "secondary"]),
+  children: PropTypes.node.isRequired
 };

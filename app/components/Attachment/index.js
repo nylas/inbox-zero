@@ -1,6 +1,7 @@
+import PropTypes from "prop-types";
 import styles from "./Attachment.module.css";
 
-export default function Attachment({ filename, id }) {
+function Attachment({ filename, id }) {
   return (
     <a
       href={`/api/files/${filename}?id=${id}`}
@@ -11,3 +12,9 @@ export default function Attachment({ filename, id }) {
     </a>
   );
 }
+Attachment.propTypes = {
+  id: PropTypes.string.isRequired,
+  filename: PropTypes.string.isRequired
+};
+
+export default Attachment;

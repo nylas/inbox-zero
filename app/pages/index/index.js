@@ -1,40 +1,42 @@
 import { Fragment, useState } from "react";
-import Link from "next/link";
 import Router from "next/router";
-import request from "../../utils/request";
-import redirect from "../../utils/redirect";
 import Head from "next/head";
+import styles from "./index.module.css";
 import Layout, { Header, Content, Sidebar } from "../../layouts/Inbox";
 import Button from "../../components/Button";
-import List from "../../components/ThreadList";
-import chevronLeftIcon from "../../assets/chevron_left.svg";
-import chevronRightIcon from "../../assets/chevron_right.svg";
-import completeIcon from "../../assets/complete.svg";
-import styles from "./index.module.css";
-import withAuth from "../../utils/withAuth";
-import classnames from "classnames";
+import Threads, { Thread } from "../../components/Threads";
 import Input from "../../components/Input";
+import Pagination from "../../components/Pagination";
+import completeIcon from "../../assets/complete.svg";
+import request from "../../utils/request";
+import redirect from "../../utils/redirect";
+import withAuth from "../../utils/withAuth";
 
 export const getServerSideProps = withAuth(async context => {
-  const currentPage = parseInt(context.query.page) || 1;
+  const page = parseInt(context.query.page) || 1;
   const search = context.query.search || "";
+
+  if (page < 1) {
+    return redirect("/", { context });
+  }
+
   const { hasNext, hasPrevious, threads } = await request(
-    `/threads?page=${currentPage}&search=${search}`,
+    `/threads?page=${page}&search=${search}`,
     {
       context
     }
   );
 
   // redirect home if we are on a page that doesn't have any threads
-  if (threads.length === 0 && currentPage > 1) {
-    redirect("/", { context });
+  if (threads.length === 0 && page > 1) {
+    return redirect("/", { context });
   }
 
   return {
     props: {
       account: context.account,
-      currentPage,
-      currentSearch: search,
+      page,
+      search,
       threads,
       hasNext,
       hasPrevious
@@ -42,10 +44,18 @@ export const getServerSideProps = withAuth(async context => {
   };
 });
 
-export default function InboxPage(props) {
-  const account = props.account;
-  const isInboxEmpty = props.threads.length === 0;
-  const [search, setSearch] = useState(props.currentSearch);
+export default function InboxPage({
+  account,
+  page,
+  search,
+  threads,
+  hasNext,
+  hasPrevious
+}) {
+  const isInboxEmpty = threads.length === 0;
+  const maybeSearch = search.length > 0 ? `&search=${search}` : "";
+  const previousLink = hasPrevious ? `/?page=${page - 1}${maybeSearch}` : null;
+  const nextLink = hasNext ? `/?page=${page + 1}${maybeSearch}` : null;
 
   return (
     <Layout>
@@ -53,7 +63,6 @@ export default function InboxPage(props) {
         <title>
           Inbox ({account.unreadCount}) - {account.emailAddress}
         </title>
-        <meta name="viewport" content="initial-scale=1.0, width=device-width" />
       </Head>
       <Header account={account} />
       <Sidebar>
@@ -67,80 +76,60 @@ export default function InboxPage(props) {
         <Button href="/" variant="primary">
           Refresh
         </Button>
-        <form
-          onSubmit={event => {
-            event.preventDefault();
-            Router.push(`/?search=${encodeURIComponent(search)}`);
-          }}
-          className={styles.SearchForm}
-        >
-          <Input
-            placeholder={"Search"}
-            value={search}
-            onChange={({ target }) => setSearch(target.value)}
-            type="search"
-          />
-        </form>
+        <SearchForm search={search} />
       </Sidebar>
       <Content>
-        {isInboxEmpty ? <EmptyState /> : <Threads {...props} />}
+        {isInboxEmpty ? (
+          <EmptyState />
+        ) : (
+          <Fragment>
+            <Threads>
+              {threads.map(thread => (
+                <Thread
+                  key={thread.id}
+                  id={thread.id}
+                  unread={thread.unread}
+                  fromName={thread.from.name}
+                  subject={thread.subject}
+                  snippet={thread.snippet}
+                  date={thread.date}
+                  hasAttachment={thread.hasAttachments}
+                />
+              ))}
+            </Threads>
+            <Pagination
+              label={`Page ${page}`}
+              previous={previousLink ? { href: previousLink } : null}
+              next={nextLink ? { href: nextLink } : null}
+            />
+          </Fragment>
+        )}
       </Content>
     </Layout>
   );
 }
 
-function EmptyState() {
-  return <img src={completeIcon} alt="Inbox zero achieved!" />;
-}
-
-function Threads({
-  account,
-  threads,
-  currentPage,
-  currentSearch,
-  hasNext,
-  hasPrevious
-}) {
-  const previousPage = currentPage > 1 ? currentPage - 1 : 1;
-  const nextPage = currentPage + 1;
-  const maybeSearch =
-    currentSearch.length > 0 ? `&search=${currentSearch}` : "";
+function SearchForm({ search }) {
+  const [searchInput, setSearchInput] = useState(search);
 
   return (
-    <Fragment>
-      <List>
-        {threads.map(thread => (
-          <List.Thread
-            key={thread.id}
-            id={thread.id}
-            unread={thread.unread}
-            fromName={thread.from.name}
-            subject={thread.subject}
-            snippet={thread.snippet}
-            date={thread.date}
-            hasAttachment={thread.hasAttachments}
-          />
-        ))}
-      </List>
-      <div className={styles.Pagination}>
-        <button
-          className={styles.Pagination__button}
-          disabled={!hasPrevious}
-          onClick={() =>
-            Router.push(`/`, `/?page=${previousPage}${maybeSearch}`)
-          }
-        >
-          <img src={chevronLeftIcon} alt="previous" />
-        </button>
-        <div>Page {currentPage}</div>
-        <button
-          className={styles.Pagination__button}
-          disabled={!hasNext}
-          onClick={() => Router.push(`/`, `/?page=${nextPage}${maybeSearch}`)}
-        >
-          <img src={chevronRightIcon} alt="next" />
-        </button>
-      </div>
-    </Fragment>
+    <form
+      onSubmit={event => {
+        event.preventDefault();
+        Router.push(`/?search=${encodeURIComponent(searchInput)}`);
+      }}
+      className={styles.SearchForm}
+    >
+      <Input
+        placeholder={"Search"}
+        value={searchInput}
+        onChange={({ target }) => setSearchInput(target.value)}
+        type="search"
+      />
+    </form>
   );
+}
+
+function EmptyState() {
+  return <img src={completeIcon} alt="Inbox zero achieved!" />;
 }

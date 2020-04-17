@@ -11,26 +11,6 @@
   font-weight: bold;
 }
 
-.Pagination {
-  margin-top: 32px;
-  display: flex;
-  justify-content: space-between;
-}
-
-.Pagination__button {
-  font: inherit;
-  color: inherit;
-  background: transparent;
-  border: 0;
-  padding: 0;
-  cursor: pointer;
-}
-
-.Pagination__button[disabled] {
-  opacity: 0.2;
-  cursor: not-allowed;
-}
-
 .SearchForm {
   margin-top: 32px;
 }

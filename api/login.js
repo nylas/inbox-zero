@@ -8,7 +8,7 @@ const Nylas = require("./utils/nylas");
  */
 module.exports = async (req, res) => {
   const options = {
-    loginHint: req.query.login_hint || "",
+    loginHint: req.query.loginHint || "",
     redirectURI: "http://localhost:3000/api/authorize",
     scopes: ["email.read_only", "email.modify", "email.send", "calendar"]
   };

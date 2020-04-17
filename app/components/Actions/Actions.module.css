@@ -1,0 +1,37 @@
+.Actions {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.Action {
+  margin-top: 32px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.Action__button {
+  font: inherit;
+  color: inherit;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  text-align: inherit;
+  display: flex;
+  align-items: center;
+  cursor: inherit;
+  width: 100%;
+}
+
+.Action__icon {
+  margin-right: 24px;
+  width: 30px;
+  display: flex;
+}
+
+.Action__button[disabled] {
+  font-weight: normal;
+  color: #585858;
+  cursor: default;
+}

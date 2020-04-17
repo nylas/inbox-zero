@@ -1,0 +1,35 @@
+/** Editor */
+.Editor {
+  margin: 18px 0 48px 0;
+  border: 1px solid #e8e8e8;
+}
+
+/* Placeholder when the page is SSR to avoid a big jump when the editor loads */
+.EditorPlaceholder {
+  height: 340px;
+}
+
+.Editor :global(.quill) {
+  display: flex;
+  flex-direction: column-reverse;
+  border: 0;
+}
+
+.Editor :global(.ql-container) {
+  border: 0 !important;
+}
+
+.Editor :global(.ql-editor) {
+  min-height: 300px;
+
+  /** email styling */
+  font-size: 15px;
+  font-family: Arial, Helvetica, sans-serif;
+  color: #111;
+}
+
+.Editor :global(.ql-toolbar) {
+  border: 0 !important;
+  border-top: 1px solid #e8e8e8 !important;
+  padding: 12px;
+}

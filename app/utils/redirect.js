@@ -3,6 +3,6 @@ export default function redirect(location, { context } = {}) {
     context.res.writeHead(302, { Location: location });
     return context.res.end();
   } else {
-    return (document.location.pathname = location);
+    return (window.location.href = location);
   }
 }

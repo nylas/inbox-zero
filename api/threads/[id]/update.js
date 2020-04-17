@@ -45,7 +45,11 @@ module.exports = async (req, res) => {
 
     /** mark sender as read */
     if (req.body.senderUnread === false) {
-      await markSenderAsRead({ nylas, thread, account });
+      await markSenderAsRead({
+        nylas: req.nylas,
+        thread,
+        account: req.account
+      });
     }
 
     res.status(200).json({});

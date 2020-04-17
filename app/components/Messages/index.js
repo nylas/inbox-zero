@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
-import styles from "./MessageAccordion.module.css";
+import styles from "./Messages.module.css";
 import Message from "./Message";
 import classnames from "classnames";
 
-function MessageAccordion({ children, divideTop }) {
+function Messages({ children, divideTop }) {
   const [index, setIndex] = useState(0);
 
   useEffect(() => {
@@ -13,7 +13,7 @@ function MessageAccordion({ children, divideTop }) {
 
   return (
     <div
-      className={classnames(styles.MessageAccordion, {
+      className={classnames(styles.Messages, {
         [styles.divideTop]: divideTop
       })}
     >
@@ -30,11 +30,10 @@ function MessageAccordion({ children, divideTop }) {
   );
 }
 
-MessageAccordion.propTypes = {
+Messages.propTypes = {
   divideTop: PropTypes.bool,
   children: PropTypes.arrayOf(Message).isRequired
 };
 
-MessageAccordion.Message = Message;
-
-export default MessageAccordion;
+export default Messages;
+export { Message };

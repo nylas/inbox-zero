@@ -1,3 +1,11 @@
+.Title {
+  font-size: 60px;
+}
+
+.InputWrapper {
+  margin: 40px 0;
+}
+
 .ErrorMessage {
   margin-top: 12px;
   color: #ff1200;

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import PropTypes from "prop-types";
 import classnames from "classnames";
-import styles from "./ThreadList.module.css";
+import styles from "./Threads.module.css";
 import attachment from "../../assets/attachment.svg";
 import formatDate from "../../utils/formatDate";
 
@@ -22,13 +22,13 @@ function Thread({
           styles[unread ? "unread" : "read"]
         )}
       >
-        <span className={classnames(styles.Thread__iconCell)}>
+        <span className={styles.Thread__iconCell}>
           <span className={styles.Thread__icon}>
             {fromName && fromName.charAt(0).toUpperCase()}
           </span>
         </span>
-        <span className={classnames(styles.Thread__fromName)}>{fromName}</span>
-        <span className={classnames(styles.Thread__subjectAndAttachment)}>
+        <span className={styles.Thread__fromName}>{fromName}</span>
+        <span className={styles.Thread__subjectAndAttachment}>
           <span className={styles.Thread__subject}>{subject}</span>
           {hasAttachment && (
             <img
@@ -39,10 +39,10 @@ function Thread({
           )}
         </span>
         <span
-          className={classnames(styles.Thread__snippet)}
+          className={styles.Thread__snippet}
           dangerouslySetInnerHTML={{ __html: snippet }}
         />
-        <span className={classnames(styles.Thread__date)}>
+        <span className={styles.Thread__date}>
           {formatDate(new Date(date))}
         </span>
       </a>

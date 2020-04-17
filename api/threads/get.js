@@ -37,7 +37,7 @@ module.exports = async (req, res) => {
 
     let threads = await (search.length > 0
       ? expandThreads({
-          nylas,
+          nylas: req.nylas,
           threads: await req.nylas.threads.search(search, { ...pagination })
         })
       : req.nylas.threads.list({
