@@ -4,9 +4,9 @@
  * Endpoint:    POST /api/threads/:id
  * Request:
  * {
- *   to:  [ EmailAddress ],
- *   cc:  [ EmailAddress ],
- *   bcc: [ EmailAddress ],
+ *   to:  [ { email: String } ],
+ *   cc:  [ { email: String } ],
+ *   bcc: [ { email: String } ],
  *   body: String
  * }
  * Response:    {}
@@ -18,16 +18,10 @@ module.exports = async (req, res) => {
   const draft = req.nylas.drafts.build();
   // Send replies by setting replyToMessageId for a draft
   draft.subject = thread.subject;
-  draft.replyToMessageId = thread.messageIds[thread.messageIds - 1];
-  draft.to = req.body.to.map(email => {
-    return { email };
-  });
-  draft.cc = req.body.cc.map(email => {
-    return { email };
-  });
-  draft.bcc = req.body.bcc.map(email => {
-    return { email };
-  });
+  draft.replyToMessageId = thread.messageIds[thread.messageIds.length - 1];
+  draft.to = req.body.to;
+  draft.cc = req.body.cc;
+  draft.bcc = req.body.bcc;
   draft.body = req.body.body;
   draft.files = req.body.files;
 

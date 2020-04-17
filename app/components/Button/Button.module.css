@@ -13,7 +13,7 @@
   line-height: 1.25;
 }
 
-.Button:hover {
+.Button:not([disabled]):hover {
   background: #18f9d4;
 }
 
@@ -28,4 +28,9 @@
   font-size: 13px;
   padding: 8px 12px;
   letter-spacing: 0.43px;
+}
+
+.Button[disabled] {
+  cursor: not-allowed;
+  color: rgba(0, 0, 0, 0.5);
 }

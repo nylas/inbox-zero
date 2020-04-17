@@ -1,5 +1,5 @@
 import NextError from "next/error";
-import { Fragment, useState, useRef, useEffect } from "react";
+import { Fragment, useReducer, useState, useRef, useEffect } from "react";
 import request from "../../../utils/request";
 import Head from "next/head";
 import Router from "next/router";
@@ -19,7 +19,6 @@ import SchedulerAction from "../../../components/threadActions/SchedulerAction";
 import LabelsAction from "../../../components/threadActions/LabelsAction";
 import MarkReadAction from "../../../components/threadActions/MarkReadAction";
 import MarkSenderReadAction from "../../../components/threadActions/MarkSenderReadAction";
-import { useReferrer } from "../../../components/Referrer";
 import NProgress from "nprogress";
 
 export const getServerSideProps = withAuth(async context => {
@@ -54,45 +53,58 @@ export default function ThreadPage({
     return <NextError statusCode={errorCode} />;
   }
 
-  const [showReply, setShowReply] = useState(false);
-  const [thread, setThread] = useState(serverThread);
-  const messages = thread.messages;
-  useEffect(() => {
-    setThread(serverThread);
-  }, [serverThread]);
+  const participantsToEmails = participants =>
+    participants
+      .map(p => p.email)
+      .filter(email => email !== account.emailAddress)
+      .join(",");
 
-  const [formState, setFormState] = useState({
-    body: "",
-    to: [...messages[0].to, ...messages[0].from]
-      .filter(({ email }) => email !== account.emailAddress)
-      .map(({ email }) => email)
-      .join(", "),
-    cc: messages[0].cc
-      .filter(({ email }) => email !== account.emailAddress)
-      .map(({ email }) => email)
-      .join(", "),
-    bcc: messages[0].bcc
-      .filter(({ email }) => email !== account.emailAddress)
-      .map(({ email }) => email)
-      .join(", "),
-    files: []
+  const [thread, threadDispatch] = useReducer(threadReducer, serverThread);
+  const lastSentMessage = thread.messages[0];
+  const [reply, replyDispatch] = useReducer(replyReducer, {
+    isSubmitting: false,
+    isVisible: false,
+    fields: {
+      to: participantsToEmails([
+        ...lastSentMessage.to,
+        ...lastSentMessage.from
+      ]),
+      cc: participantsToEmails(lastSentMessage.cc),
+      bcc: participantsToEmails(lastSentMessage.bcc),
+      body: "",
+      files: []
+    }
   });
 
-  async function triggerSubmit(e) {
-    e.preventDefault();
+  const showReply = () => {
+    NProgress.start();
+    replyDispatch({ type: "show" });
+    NProgress.done();
+  };
 
-    const toEmails = formState.to
-      ? formState.to.split(",").map(cleanEmail)
-      : [];
-    const ccEmails = formState.cc
-      ? formState.cc.split(",").map(cleanEmail)
-      : [];
-    const bccEmails = formState.bcc
-      ? formState.bcc.split(",").map(cleanEmail)
-      : [];
+  const hideReply = () => {
+    NProgress.start();
+    replyDispatch({ type: "hide" });
+    NProgress.done();
+  };
+
+  useEffect(() => threadDispatch({ type: "reset", thread: serverThread }), [
+    serverThread
+  ]);
+
+  async function sendReply(event) {
+    event.preventDefault();
+
+    replyDispatch({ type: "submitting" });
+
+    const fields = reply.fields;
+
+    const toEmails = inputToEmails(fields.to);
+    const ccEmails = inputToEmails(fields.cc);
+    const bccEmails = inputToEmails(fields.bcc);
     const allEmails = [...toEmails, ...ccEmails, ...bccEmails];
 
-    const invalidEmail = allEmails.find(email => !email.includes("@"));
+    const invalidEmail = allEmails.find(({ email }) => !email.includes("@"));
 
     if (invalidEmail) {
       return alert(`${invalidEmail} is not a valid email.`);
@@ -109,14 +121,20 @@ export default function ThreadPage({
           to: toEmails,
           cc: ccEmails,
           bcc: bccEmails,
-          body: formState.body,
-          files: formState.files
+          body: fields.body,
+          files: fields.files
         }
       });
 
       Router.push("/");
     } catch (error) {
+      /**
+       * We only mark the form as completed if it fails.
+       * If it succeeds, we keep it locked so there is no chance
+       * the user sends two messages instead of one.
+       */
       NProgress.done();
+      replyDispatch({ type: "completed" });
       alert(error.error);
     }
   }
@@ -128,110 +146,64 @@ export default function ThreadPage({
       </Head>
       <Header account={account} />
       <Sidebar>
-        {showReply && (
+        {reply.isVisible && (
           <Fragment>
-            <BackButton
-              onClick={() => {
-                NProgress.start();
-                setShowReply(false);
-                NProgress.done();
-              }}
-            />
-            <Button onClick={triggerSubmit}>Send</Button>
+            <BackButton onClick={() => hideReply()} />
+            <Button onClick={sendReply} disabled={reply.isSubmitting}>
+              Send
+            </Button>
             <Actions>
               <AttachmentsAction
-                files={formState.files}
+                files={reply.fields.files}
                 onUpload={file => {
-                  setFormState({
-                    ...formState,
-                    files: [...formState.files, file]
-                  });
+                  replyDispatch({ type: "uploadFile", file });
                 }}
-                onDelete={({ id }) => {
-                  setFormState({
-                    ...formState,
-                    files: formState.files.filter(file => file.id !== id)
-                  });
+                onDelete={file => {
+                  replyDispatch({ type: "deleteFile", file });
                 }}
               />
             </Actions>
           </Fragment>
         )}
-        {!showReply && (
+        {!reply.isVisible && (
           <Fragment>
-            <DetailsBackButton />
-            <Button
-              onClick={() => {
-                NProgress.start();
-                setShowReply(true);
-                NProgress.done();
-              }}
-            >
-              Reply
-            </Button>
+            <BackButton />
+            <Button onClick={() => showReply()}>Reply</Button>
             <Actions>
               <SchedulerAction
                 accessToken={account.accessToken}
                 schedulerPages={schedulerPages}
                 onSchedule={page => {
-                  NProgress.start();
-                  setShowReply(true);
-                  NProgress.done();
-                  setFormState({
-                    ...formState,
-                    body: `<a href="https://schedule.nylas.com/${page.slug}">${page.name}</a>`
+                  replyDispatch({
+                    type: "field",
+                    field: "body",
+                    value: `<a href="https://schedule.nylas.com/${page.slug}">${page.name}</a>`
                   });
+                  showReply();
                 }}
               />
               <LabelsAction
                 thread={thread}
-                onAdd={newLabel => {
-                  setThread({
-                    ...thread,
-                    labels: thread.labels.map(label => {
-                      if (newLabel.id === label.id) {
-                        return {
-                          ...label,
-                          checked: true
-                        };
-                      }
-
-                      return label;
-                    })
-                  });
+                onAdd={label => {
+                  threadDispatch({ type: "addLabel", label });
                 }}
-                onRemove={oldLabel => {
-                  setThread({
-                    ...thread,
-                    labels: thread.labels.map(label => {
-                      if (oldLabel.id === label.id) {
-                        return {
-                          ...label,
-                          checked: false
-                        };
-                      }
-
-                      return label;
-                    })
-                  });
+                onRemove={label => {
+                  threadDispatch({ type: "removeLabel", label });
                 }}
                 onCreate={label => {
-                  setThread({
-                    ...thread,
-                    labels: [...thread.labels, label]
-                  });
+                  threadDispatch({ type: "createLabel", label });
                 }}
               />
               <MarkReadAction
                 thread={thread}
                 onChange={({ unread }) => {
-                  setThread({ ...thread, unread });
+                  threadDispatch({ type: "markRead" });
                 }}
               />
               <MarkSenderReadAction
                 thread={thread}
                 onChange={({ senderUnread }) => {
-                  setThread({ ...thread, senderUnread });
+                  threadDispatch({ type: "markSenderRead" });
                 }}
               />
             </Actions>
@@ -246,9 +218,11 @@ export default function ThreadPage({
         >
           {thread.subject}
         </h2>
-        {showReply && <ReplyForm state={formState} setState={setFormState} />}
-        <Messages divideTop={showReply}>
-          {messages.map(message => (
+        {reply.isVisible && (
+          <ReplyForm fields={reply.fields} dispatch={replyDispatch} />
+        )}
+        <Messages divideTop={reply.isVisible}>
+          {thread.messages.map(message => (
             <Message
               key={message.id}
               id={message.id}
@@ -285,23 +259,118 @@ export default function ThreadPage({
   );
 }
 
-function ReplyForm({ state, setState }) {
+function threadReducer(state, action) {
+  switch (action.type) {
+    case "addLabel":
+      return {
+        ...state,
+        labels: state.labels.map(label =>
+          label.id === action.label.id ? { ...label, checked: true } : label
+        )
+      };
+    case "removeLabel":
+      return {
+        ...state,
+        labels: state.labels.map(label =>
+          label.id === action.label.id ? { ...label, checked: false } : label
+        )
+      };
+    case "createLabel":
+      return {
+        ...state,
+        labels: [...state.labels, action.label]
+      };
+    case "markRead":
+      return { ...state, unread: false };
+    case "markSenderRead":
+      return { ...state, unread: false, senderUnread: false };
+    case "reset":
+      return action.thread;
+    default:
+      throw new Error();
+  }
+}
+
+function replyReducer(state, action) {
+  switch (action.type) {
+    case "show":
+      return {
+        ...state,
+        isVisible: true
+      };
+    case "hide":
+      return {
+        ...state,
+        isVisible: false
+      };
+    case "submitting":
+      return {
+        ...state,
+        isSubmitting: true
+      };
+    case "completed":
+      return {
+        ...state,
+        isSubmitting: false
+      };
+    case "field":
+      return {
+        ...state,
+        fields: {
+          ...state.fields,
+          [action.field]: action.value
+        }
+      };
+    case "deleteFile":
+      return {
+        ...state,
+        fields: {
+          ...state.fields,
+          files: state.fields.files.filter(file => file.id !== action.file.id)
+        }
+      };
+    case "uploadFile":
+      return {
+        ...state,
+        fields: {
+          ...state.fields,
+          files: [...state.fields.files, action.file]
+        }
+      };
+    default:
+      throw new Error();
+  }
+}
+
+function inputToEmails(input) {
+  if (!input) {
+    return [];
+  }
+
+  return input.split(",").map(email => {
+    return {
+      email: email.trim().toLowerCase()
+    };
+  });
+}
+
+function ReplyForm({ fields, dispatch }) {
   const [showSecondaryEmails, setShowSecondaryEmails] = useState(
-    state.cc.length > 0 || state.bcc.length > 0
+    fields.cc.length > 0 || fields.bcc.length > 0
   );
+
+  const onChange = ({ target }) => {
+    dispatch({ type: "field", field: target.name, value: target.value });
+  };
 
   return (
     <Fragment>
       <div className={styles.Recipients}>
         <Input
-          value={state.to}
+          value={fields.to}
           placeholder="To"
-          onChange={e =>
-            setState({
-              ...state,
-              to: e.target.value
-            })
-          }
+          name="to"
+          onChange={onChange}
         />
         <div>
           <button
@@ -313,71 +382,31 @@ function ReplyForm({ state, setState }) {
             CC BCC
           </button>
         </div>
-        {showSecondaryEmails ? (
+        {showSecondaryEmails && (
           <Fragment>
             <Input
-              value={state.cc}
+              value={fields.cc}
               placeholder="Cc"
-              onChange={e =>
-                setState({
-                  ...state,
-                  cc: e.target.value
-                })
-              }
+              name="cc"
+              onChange={onChange}
             />
             <Input
-              value={state.bcc}
+              value={fields.bcc}
               placeholder="Bcc"
-              onChange={e =>
-                setState({
-                  ...state,
-                  bcc: e.target.value
-                })
-              }
+              name="bcc"
+              onChange={onChange}
             />
           </Fragment>
-        ) : (
-          ""
         )}
       </div>
       <div style={{ padding: "0 24px" }}>
         <Editor
-          value={state.body}
-          onChange={body => {
-            setState({
-              ...state,
-              body
-            });
+          value={fields.body}
+          onChange={value => {
+            dispatch({ type: "field", field: "body", value });
           }}
         />
       </div>
     </Fragment>
   );
-}
-
-function DetailsBackButton() {
-  const referrer = useReferrer();
-
-  return (
-    <BackButton
-      onClick={() => {
-        const isOutsideReferrer =
-          referrer === null ||
-          new URL(referrer).origin !== window.location.origin;
-
-        const fromListPage =
-          !isOutsideReferrer && new URL(referrer).pathname === "/";
-
-        if (isOutsideReferrer || !fromListPage) {
-          Router.push("/");
-        } else {
-          Router.back();
-        }
-      }}
-    />
-  );
-}
-
-function cleanEmail(str) {
-  return str.trim().toLowerCase();
 }

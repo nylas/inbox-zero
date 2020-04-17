@@ -11,7 +11,8 @@ Actions.propTypes = {
   children: PropTypes.arrayOf(
     PropTypes.oneOfType([
       PropTypes.instanceOf(Action),
-      PropTypes.instanceOf(Slot)
+      PropTypes.instanceOf(Slot),
+      PropTypes.bool
     ])
   ).isRequired
 };
