@@ -104,8 +104,8 @@ function ReplySidebar({ triggerSubmit, setShowReply, state, setState }) {
     NProgress.done();
   }
 
-  async function deleteFile(id) {
-    await request(`/files/${id}`, {
+  async function deleteFile({ filename, id }) {
+    await request(`/files/${filename}?id=${id}`, {
       method: "DELETE"
     });
 
@@ -146,7 +146,7 @@ function ReplySidebar({ triggerSubmit, setShowReply, state, setState }) {
               key={file.id}
               icon={removeIcon}
               onClickIcon={() => {
-                deleteFile(file.id);
+                deleteFile(file);
               }}
             >
               <Attachment {...file} />
@@ -451,7 +451,10 @@ function DetailsSidebar({
         body: update
       });
 
-      setThread(updatedThread);
+      setThread({
+        ...thread,
+        ...update
+      });
     } catch (e) {
       console.log(e);
       alert("Something went wrong");
@@ -459,17 +462,33 @@ function DetailsSidebar({
     NProgress.done();
   }
 
-  function addLabel(label) {
+  function addLabel(newLabel) {
     updateThread({
-      labels: [...thread.labels.filter(label => label.checked), label]
+      labels: thread.labels.map(label => {
+        if (newLabel.id === label.id) {
+          return {
+            ...label,
+            checked: true
+          };
+        }
+
+        return label;
+      })
     });
   }
 
-  function removeLabel(label) {
+  function removeLabel(oldLabel) {
     updateThread({
-      labels: thread.labels.filter(
-        ({ id, checked }) => id !== label.id && checked
-      )
+      labels: thread.labels.map(label => {
+        if (oldLabel.id === label.id) {
+          return {
+            ...label,
+            checked: false
+          };
+        }
+
+        return label;
+      })
     });
   }
 
@@ -570,7 +589,7 @@ function DetailsSidebar({
         </Action>
         <Action
           icon={doubleFlagIcon}
-          disabled={thread.senderUnread === false}
+          disabled={thread.senderUnreadCount === false}
           onClick={() => updateThread({ senderUnread: false })}
         >
           Mark All Emails From Sender as Read »
@@ -581,9 +600,8 @@ function DetailsSidebar({
 }
 
 export const getServerSideProps = withAuth(async context => {
-  const [thread, messages, schedulerPages] = await Promise.all([
+  const [thread, schedulerPages] = await Promise.all([
     request(`/threads/${context.query.id}`, { context }),
-    request(`/threads/${context.query.id}/messages`, { context }),
     fetch("https://schedule.api.nylas.com/manage/pages", {
       headers: { Authorization: `Bearer ${context.account.accessToken}` }
     }).then(response => response.json())
@@ -592,20 +610,19 @@ export const getServerSideProps = withAuth(async context => {
     props: {
       account: context.account,
       serverThread: thread,
-      messages,
       serverSchedulerPages: schedulerPages
     }
   };
 });
 
-export default function threadPage({
+export default function ThreadPage({
   account,
   serverThread,
-  messages,
   serverSchedulerPages
 }) {
   const [showReply, setShowReply] = useState(false);
   const [thread, setThread] = useState(serverThread);
+  const messages = thread.messages;
   const [schedulerPages, setSchedulerPages] = useState(serverSchedulerPages);
   useEffect(() => {
     setThread(serverThread);
@@ -618,8 +635,14 @@ export default function threadPage({
       .filter(({ email }) => email !== account.emailAddress)
       .map(({ email }) => email)
       .join(", "),
-    cc: messages[0].cc.map(({ email }) => email).join(", "),
-    bcc: messages[0].bcc.map(({ email }) => email).join(", "),
+    cc: messages[0].cc
+      .filter(({ email }) => email !== account.emailAddress)
+      .map(({ email }) => email)
+      .join(", "),
+    bcc: messages[0].bcc
+      .filter(({ email }) => email !== account.emailAddress)
+      .map(({ email }) => email)
+      .join(", "),
     files: []
   });
 

@@ -42,7 +42,7 @@ export const getServerSideProps = withAuth(async context => {
   };
 });
 
-export default function Inbox(props) {
+export default function InboxPage(props) {
   const account = props.account;
   const isInboxEmpty = props.threads.length === 0;
   const [search, setSearch] = useState(props.currentSearch);

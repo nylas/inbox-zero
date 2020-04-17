@@ -41,7 +41,7 @@ export function Header({ account }) {
       <div className={styles.Header__profile}>
         {account.emailAddress}
         <img className={styles.Header__avatar} src={avatar} alt="avatar" />
-        <Button variant="secondary" href="/api/logout">
+        <Button variant="secondary" href="/api/logout" prefetch={false}>
           Log out
         </Button>
       </div>

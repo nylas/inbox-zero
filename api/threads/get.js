@@ -1,10 +1,8 @@
-import protect from "../../../middleware/protect";
-
 /**
  * Retrieves a list of threads that belong to the current user which
  * match the given parameters.
  */
-export default protect(async (req, res) => {
+module.exports = async (req, res) => {
   try {
     const page = req.query.page >= 1 ? req.query.page : 1;
     const search = req.query.search || "";
@@ -76,7 +74,7 @@ export default protect(async (req, res) => {
     console.log(err);
     res.status(500).json({ error: "Something went wrong. Please try again." });
   }
-});
+};
 
 function simplifyThread(thread) {
   return {

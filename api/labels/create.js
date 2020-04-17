@@ -1,6 +1,4 @@
-import protect from "../../middleware/protect";
-
-export default protect(async (req, res) => {
+module.exports = async (req, res) => {
   const displayName = req.body.displayName;
 
   if (!displayName) {
@@ -16,4 +14,4 @@ export default protect(async (req, res) => {
     displayName: label.displayName,
     checked: false
   });
-});
+};

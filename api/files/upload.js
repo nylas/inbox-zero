@@ -1,8 +1,7 @@
-import protect from "../../../middleware/protect";
-import { promises as fs } from "fs";
-import formidable from "formidable";
+const { promises: fs } = require("fs");
+const formidable = require("formidable");
 
-export default protect(async (req, res) => {
+module.exports = async (req, res) => {
   const form = formidable({ multiples: true });
 
   return form.parse(req, async (error, fields, files) => {
@@ -39,10 +38,8 @@ export default protect(async (req, res) => {
       });
     } catch (error) {
       res.status(400).json({
-        error: error.message
+        error: "Failed to upload file to account"
       });
     }
   });
-});
-
-export const config = { api: { bodyParser: false } };
+};

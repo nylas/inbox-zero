@@ -49,20 +49,45 @@ const next = require("next");
 
 const port = parseInt(process.env.PORT, 10) || 3000;
 const dev = process.env.NODE_ENV !== "production";
-const app = next({ dev });
-const handle = app.getRequestHandler();
+const app = next({
+  dev,
+  dir: "./app"
+});
+const nextHandler = app.getRequestHandler();
+const cookieParser = require("cookie-parser");
+const bodyParser = require("body-parser");
+const api = express();
+
+/** authorization */
+api.get("/login", require("./api/login"));
+api.get("/authorize", require("./api/authorize"));
+api.get("/logout", require("./api/logout"));
+
+const authenticate = require("./api/utils/middleware/authenticate");
+
+/** account management */
+api.get("/account", authenticate, require("./api/account/get"));
+api.post("/labels", authenticate, require("./api/labels/create"));
+
+/** threads */
+api.get("/threads", authenticate, require("./api/threads/get"));
+api.get("/threads/:id", authenticate, require("./api/threads/[id]/get"));
+api.put("/threads/:id", authenticate, require("./api/threads/[id]/update"));
+api.post("/threads/:id", authenticate, require("./api/threads/[id]/reply"));
+
+/** files */
+api.get("/files/:name", authenticate, require("./api/files/download"));
+api.delete("/files/:name", authenticate, require("./api/files/delete"));
+api.post("/files", authenticate, require("./api/files/upload"));
 
 app.prepare().then(() => {
   const server = express();
-
-  server.get("/a", (req, res) => {
-    return res.json({
-      test: "123"
-    });
-  });
+  server.use(cookieParser());
+  server.use(bodyParser.json());
+  server.use("/api", api);
 
   server.all("*", (req, res) => {
-    return handle(req, res);
+    return nextHandler(req, res);
   });
 
   server.listen(port, err => {

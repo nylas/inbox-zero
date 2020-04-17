@@ -1,10 +1,8 @@
-import protect from "../../middleware/protect";
-
 /**
  * Retrieves a list of messages that belong to the current user which
  * match the given parameters.
  */
-export default protect(async (req, res) => {
+module.exports = async (req, res) => {
   try {
     const unreadCount = await req.nylas.threads.count({
       in: "inbox",
@@ -22,4 +20,4 @@ export default protect(async (req, res) => {
     console.log(err);
     res.status(500).json({ error: "Something went wrong. Please try again." });
   }
-});
+};
