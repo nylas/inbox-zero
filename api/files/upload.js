@@ -1,13 +1,23 @@
 const { promises: fs } = require("fs");
 const formidable = require("formidable");
 
+/**
+ * Description: Upload a file
+ * Endpoint:    POST /api/files/
+ * Request:     Form Data
+ * Response:
+ * {
+ *   id: String,
+ *   filename: String
+ * }
+ */
 module.exports = async (req, res) => {
   const form = formidable({ multiples: true });
 
   return form.parse(req, async (error, fields, files) => {
     if (error) {
       return res.status(400).json({
-        error: "Failed to upload file"
+        error: "Failed to parse file upload."
       });
     }
 
@@ -15,7 +25,7 @@ module.exports = async (req, res) => {
 
     if (!upload) {
       return res.status(400).json({
-        error: "No file uploaded"
+        error: "No file uploaded."
       });
     }
 
@@ -37,8 +47,9 @@ module.exports = async (req, res) => {
         filename: file.filename
       });
     } catch (error) {
-      res.status(400).json({
-        error: "Failed to upload file to account"
+      console.log(error);
+      res.status(500).json({
+        error: "Failed to upload file to email account."
       });
     }
   });

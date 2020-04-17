@@ -6,13 +6,11 @@ import NProgress from "nprogress";
 import Router from "next/router";
 import Referrer from "../components/Referrer";
 
-Router.events.on("routeChangeStart", url => {
-  NProgress.start();
-});
+Router.events.on("routeChangeStart", () => NProgress.start());
 Router.events.on("routeChangeComplete", () => NProgress.done());
 Router.events.on("routeChangeError", () => NProgress.done());
 
-export default function InboxZero({ Component, pageProps }) {
+export default function InboxZeroApp({ Component, pageProps }) {
   return (
     <Referrer>
       <Component {...pageProps} />

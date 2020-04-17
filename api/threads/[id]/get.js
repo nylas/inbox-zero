@@ -1,116 +1,158 @@
+const { DEFAULT_LABELS } = require("../../utils/constants");
+const getThreadFrom = require("../../utils/getThreadFrom");
+
 /**
- * Retrieves a list of messages that belong to the current user which
- * match the given parameters.
+ * Description: Retrieves an email thread
+ * Endpoint:    GET /api/threads/:id
+ * Response:
+ * {
+ *   id: String,
+ *   subject: String,
+ *   from: { name: String, email: String },
+ *   messages: [
+ *     {
+ *       id: String,
+ *       subject: String,
+ *       from: [
+ *         { name: String, email: String }
+ *       ],
+ *       to: [
+ *         { name: String, email: String }
+ *       ],
+ *       cc: [
+ *         { name: String, email: String }
+ *       ],
+ *       bcc: [
+ *         { name: String, email: String }
+ *       ],
+ *       date: Timestamp,
+ *       unread: Boolean,
+ *       body: String,
+ *       hasAttachments: Boolean,
+ *       files: [
+ *         { filename: String, id: String }
+ *       ],
+ *     }
+ *   ],
+ *   date: Timestamp,
+ *   snippet: String,
+ *   hasAttachments: Boolean,
+ *   unread: Boolean,
+ *   senderUnread: Boolean,
+ *   labels: [
+ *     {
+ *       id: String,
+ *       displayName: String,
+ *       checked: Boolean
+ *     }
+ *   ],
+ *   previousThreadId: String|null,
+ *   nextThreadId: String|null
+ * }
  */
 module.exports = async (req, res) => {
+  const nylas = req.nylas;
+  const account = req.account;
+  const id = req.params.id;
+
   try {
-    res.status(200).json(
-      await getThreadById({
-        nylas: req.nylas,
-        id: req.params.id,
-        account: req.account
-      })
-    );
-  } catch (err) {
-    console.log(err);
+    const thread = await nylas.threads.find(id, null, { view: "expanded" });
+    const threadFrom = getThreadFrom({ thread, account });
+    const senderUnread = await checkIfSenderUnread({ nylas, account, thread });
+    const { previousThreadId, nextThreadId } = await getThreadPagination({
+      nylas,
+      thread
+    });
+    const labels = await getThreadLabels({ nylas, account, thread });
+    const messages = await nylas.messages.list({
+      thread_id: id,
+      view: "expanded"
+    });
+
+    return res.status(200).json({
+      id,
+      subject: thread.subject,
+      from: threadFrom,
+      messages: messages.map(simplifyMessage),
+      date: thread.lastMessageTimestamp,
+      snippet: thread.snippet,
+      hasAttachments: thread.hasAttachments,
+      unread: thread.unread,
+      senderUnread,
+      labels,
+      previousThreadId,
+      nextThreadId
+    });
+  } catch (error) {
+    console.log(error);
     res.status(500).json({ error: "Something went wrong. Please try again." });
   }
 };
 
-async function getThreadById({ nylas, id, account }) {
-  const thread = await nylas.threads.find(id, null, { view: "expanded" });
-  const firstMessageReceived =
-    thread.messages.find(message => {
-      return message.from[0].email !== account.emailAddress;
-    }) || thread.messages[0];
+async function checkIfSenderUnread({ nylas, account, thread }) {
+  if (thread.unread) {
+    return true;
+  }
 
-  const fromEmailAddress = firstMessageReceived.from[0].email;
+  const threadFrom = getThreadFrom({ thread, account });
 
-  const [
-    senderUnreadCount,
-    allLabels,
-    previousThreads,
-    nextThreads
-  ] = await Promise.all([
-    nylas.messages.count({
-      in: "inbox",
-      from: fromEmailAddress,
-      unread: true,
-      limit: 1
-    }),
-    thread.labels ? nylas.labels.list() : Promise.resolve([]),
+  const senderUnreadCount = await nylas.messages.count({
+    in: "inbox",
+    from: threadFrom.email,
+    unread: true,
+    limit: 1
+  });
+
+  return senderUnreadCount > 0;
+}
+
+async function getThreadPagination({ nylas, thread }) {
+  const [previousThreadIds, nextThreadIds] = await Promise.all([
     nylas.threads.list({
       in: "inbox",
       unread: true,
       last_message_after: thread.lastMessageTimestamp,
-      limit: 1000
+      limit: 1000,
+      view: "ids"
     }),
     nylas.threads.list({
       in: "inbox",
       unread: true,
       last_message_before: thread.lastMessageTimestamp,
-      limit: 1
+      limit: 1,
+      view: "ids"
     })
   ]);
 
-  const accountLabels = thread.labels
-    ? allLabels
-        .filter(label => !defaultLabels.includes(label.name))
-        .map(simplifyLabel)
-    : [];
-
-  const messages = await nylas.messages.list({
-    thread_id: id,
-    view: "expanded"
-  });
+  const previousThreadId =
+    previousThreadIds.length > 0
+      ? previousThreadIds[previousThreadIds.length - 1]
+      : null;
+  const nextThreadId = nextThreadIds.length > 0 ? nextThreadIds[0] : null;
 
   return {
-    id: thread.id,
-    subject: thread.subject,
-    from: {
-      name: firstMessageReceived.from[0].name,
-      email: firstMessageReceived.from[0].email
-    },
-    messages: messages.map(simplifyMessage),
-    participants: thread.participants,
-    date: thread.lastMessageTimestamp,
-    snippet: thread.snippet,
-    unread: thread.unread,
-    hasAttachments: thread.hasAttachments,
-    unread: thread.unread,
-    senderUnread: senderUnreadCount > 0,
-    labels: accountLabels.map(label => {
+    previousThreadId,
+    nextThreadId
+  };
+}
+
+async function getThreadLabels({ nylas, account, thread }) {
+  if (account.organizationUnit !== "label") {
+    return [];
+  }
+
+  const accountLabels = await nylas.labels.list();
+
+  // return labels without any of the default labels we don't want to be visible
+  return accountLabels
+    .filter(label => !DEFAULT_LABELS.includes(label.name))
+    .map(label => {
       return {
-        ...label,
+        id: label.id,
+        displayName: label.displayName,
         checked: !!thread.labels.find(({ id }) => id === label.id)
       };
-    }),
-    previousThreadId:
-      previousThreads.length > 0 ? last(previousThreads).id : null,
-    nextThreadId: nextThreads.length > 0 ? nextThreads[0].id : null
-  };
-}
-
-const defaultLabels = [
-  "inbox",
-  "all",
-  "trash",
-  "archive",
-  "drafts",
-  "sent",
-  "spam",
-  "important"
-];
-
-function simplifyLabel(label) {
-  return {
-    id: label.id,
-    displayName: label.displayName
-  };
-}
-
-function last(arr) {
-  return arr[arr.length - 1];
+    });
 }
 
 function simplifyMessage(message) {
@@ -122,9 +164,8 @@ function simplifyMessage(message) {
     cc: message.cc,
     bcc: message.bcc,
     date: message.date,
-    unread: message.unread,
     body: message.body,
-    hasAttachments: message.hasAttachments || message.files.length > 0,
+    hasAttachments: message.files.length > 0,
     files: message.files
       ? message.files.map(({ filename, id }) => {
           return { filename: filename || "noname", id };

@@ -1,3 +1,16 @@
+/**
+ * Description: Reply to the last message in a thread and mark the
+ *              thread as read.
+ * Endpoint:    POST /api/threads/:id
+ * Request:
+ * {
+ *   to:  [ EmailAddress ],
+ *   cc:  [ EmailAddress ],
+ *   bcc: [ EmailAddress ],
+ *   body: String
+ * }
+ * Response:    {}
+ */
 module.exports = async (req, res) => {
   const id = req.params.id;
   const thread = await req.nylas.threads.find(id);
@@ -5,7 +18,7 @@ module.exports = async (req, res) => {
   const draft = req.nylas.drafts.build();
   // Send replies by setting replyToMessageId for a draft
   draft.subject = thread.subject;
-  draft.replyToMessageId = last(thread.messageIds);
+  draft.replyToMessageId = thread.messageIds[thread.messageIds - 1];
   draft.to = req.body.to.map(email => {
     return { email };
   });
@@ -22,13 +35,16 @@ module.exports = async (req, res) => {
     await draft.send();
     await thread.save();
     res.json({});
-  } catch (e) {
-    res.status(400).json({
-      error: e.message
+  } catch (error) {
+    // pass through nylas errors
+    if (error.statusCode) {
+      return res.status(400).json({
+        error: error.message
+      });
+    }
+
+    res.status(500).json({
+      error: "Failed to send reply."
     });
   }
 };
-
-function last(arr) {
-  return arr[arr.length - 1];
-}

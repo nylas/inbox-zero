@@ -1,6 +1,14 @@
 /**
- * Retrieves a list of messages that belong to the current user which
- * match the given parameters.
+ * Description: Retrieves information about the authenticated account.
+ * Endpoint:    GET /api/account
+ * Response:
+ * {
+ *   name: String,
+ *   emailAddress: String,
+ *   organizationUnit: Enum('label', 'folder'),
+ *   unreadCount: Number,
+ *   accessToken: String
+ * }
  */
 module.exports = async (req, res) => {
   try {
@@ -16,8 +24,8 @@ module.exports = async (req, res) => {
       unreadCount: unreadCount,
       accessToken: req.account.accessToken
     });
-  } catch (err) {
-    console.log(err);
-    res.status(500).json({ error: "Something went wrong. Please try again." });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: "Failed to fetch account." });
   }
 };

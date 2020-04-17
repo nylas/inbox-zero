@@ -1,8 +1,11 @@
 const Nylas = require("./utils/nylas");
 
 /**
- * Revokes the access token for the current user and deletes the cookie
- * token, logging the user out of Inbox Zero.
+ * Description: Revokes the access token for the current user and
+ *              clears the accessToken cookie, logging the user out
+ *              of Inbox Zero.
+ * Endpoint:    GET /api/logout
+ * Redirects:   /
  */
 module.exports = async (req, res) => {
   try {
@@ -11,13 +14,12 @@ module.exports = async (req, res) => {
     const account = await req.nylas.account.get();
 
     if (account) {
-      // get top level nylas account
+      // get top-level nylas account and revoke our access
       const account = await Nylas.accounts.find(req.account.id);
-      // remove our access
-      account.revokeAll();
+      await account.revokeAll();
     }
-  } catch (e) {
-    console.log(e);
+  } catch (error) {
+    console.log(error);
   }
 
   // delete the token cookie

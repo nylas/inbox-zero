@@ -1,7 +1,10 @@
 const Nylas = require("./utils/nylas");
 
 /**
- * Redirect the user to the Nylas hosted auth page to complete their authentication
+ * Description: Redirect the user to the Nylas hosted auth page to
+ *              complete their authentication
+ * Endpoint:    GET /api/login
+ * Redirects:   Nylas Hosted Auth
  */
 module.exports = async (req, res) => {
   const options = {
