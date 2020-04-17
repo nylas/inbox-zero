@@ -4,7 +4,7 @@
   "description": "Automate Your Way to Inbox Zero With Nylas",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon --watch ./api server.js",
+    "dev": "nodemon --watch ./api --watch server.js server.js",
     "build": "next build",
     "start": "NODE_ENV=production node server.js"
   },
