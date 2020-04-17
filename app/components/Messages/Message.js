@@ -5,7 +5,7 @@ import classnames from "classnames";
 import styles from "./Messages.module.css";
 import attachment from "../../assets/attachment.svg";
 import formatDate from "../../utils/formatDate";
-import MessageFrame from "../MessageFrame";
+import Frame from "./Frame";
 import Attachment from "../Attachment";
 
 function Message({
