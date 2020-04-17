@@ -51,7 +51,7 @@ function Message({
       </a>
       {isOpen ? (
         <div className={styles.MessageContents}>
-          <MessageFrame content={body} />
+          <Frame content={body} />
           {hasAttachments && (
             <div className={styles.AttachmentWrapper}>
               {files.map(file => (
