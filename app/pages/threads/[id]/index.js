@@ -1,15 +1,14 @@
-import NextError from "next/error";
 import { Fragment, useReducer, useState, useRef, useEffect } from "react";
-import request from "../../../utils/request";
+import NextError from "next/error";
 import Head from "next/head";
 import Router from "next/router";
+import classnames from "classnames";
+import NProgress from "nprogress";
+import styles from "./id.module.css";
 import Layout, { Header, Content, Sidebar } from "../../../layouts/Inbox";
 import Input from "../../../components/Input";
 import Button from "../../../components/Button";
 import Messages, { Message } from "../../../components/Messages";
-import styles from "./id.module.css";
-import withAuth from "../../../utils/withAuth";
-import classnames from "classnames";
 import Pagination from "../../../components/Pagination";
 import Editor from "../../../components/Editor";
 import BackButton from "../../../components/BackButton";
@@ -19,7 +18,8 @@ import SchedulerAction from "../../../components/threadActions/SchedulerAction";
 import LabelsAction from "../../../components/threadActions/LabelsAction";
 import MarkReadAction from "../../../components/threadActions/MarkReadAction";
 import MarkSenderReadAction from "../../../components/threadActions/MarkSenderReadAction";
-import NProgress from "nprogress";
+import request from "../../../utils/request";
+import withAuth from "../../../utils/withAuth";
 
 export const getServerSideProps = withAuth(async context => {
   try {
