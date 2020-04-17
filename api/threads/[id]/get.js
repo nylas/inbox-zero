@@ -57,7 +57,7 @@ module.exports = async (req, res) => {
 
   try {
     const thread = await nylas.threads.find(id, null, { view: "expanded" });
-    const threadFrom = getThreadFrom({ thread, account });
+    const threadFrom = getThreadFrom(thread);
     const senderUnread = await checkIfSenderUnread({ nylas, account, thread });
     const { previousThreadId, nextThreadId } = await getThreadPagination({
       nylas,
@@ -94,7 +94,7 @@ async function checkIfSenderUnread({ nylas, account, thread }) {
     return true;
   }
 
-  const threadFrom = getThreadFrom({ thread, account });
+  const threadFrom = getThreadFrom(thread, account);
 
   const senderUnreadCount = await nylas.messages.count({
     in: "inbox",

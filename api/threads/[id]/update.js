@@ -60,7 +60,7 @@ module.exports = async (req, res) => {
 };
 
 async function markSenderAsRead({ nylas, thread, account }) {
-  const fromEmailAddress = getThreadFrom({ thread, account }).email;
+  const fromEmailAddress = getThreadFrom(thread).email;
   const unreadThreads = await nylas.threads.list({
     in: "inbox",
     from: fromEmailAddress,
