@@ -90,13 +90,9 @@ module.exports = async (req, res) => {
 };
 
 async function checkIfSenderUnread({ nylas, account, thread }) {
-  if (thread.unread) {
-    return true;
-  }
+  const threadFrom = getThreadFrom(thread);
 
-  const threadFrom = getThreadFrom(thread, account);
-
-  const senderUnreadCount = await nylas.messages.count({
+  const senderUnreadCount = await nylas.threads.count({
     in: "inbox",
     from: threadFrom.email,
     unread: true,

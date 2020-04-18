@@ -1,3 +1,4 @@
+const Promise = require("bluebird");
 const { DEFAULT_LABELS } = require("../../utils/constants");
 const getThreadFrom = require("../../utils/getThreadFrom");
 
@@ -67,10 +68,13 @@ async function markSenderAsRead({ nylas, thread, account }) {
     unread: true
   });
 
-  return Promise.all(
-    unreadThreads.map(thread => {
+  return Promise.map(
+    unreadThreads,
+    thread => {
       thread.unread = false;
       return thread.save();
-    })
+    },
+    { concurrency: 5 }
   );
+  // limit to 5 calls at a time to stay under the rate limit
 }

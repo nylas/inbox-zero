@@ -23,6 +23,7 @@
   },
   "homepage": "https://github.com/nylas/inbox-zero#readme",
   "dependencies": {
+    "bluebird": "^3.7.2",
     "body-parser": "^1.19.0",
     "classnames": "^2.2.6",
     "cookie-parser": "^1.4.5",

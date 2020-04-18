@@ -1,5 +1,6 @@
+const Promise = require("bluebird");
 const getThreadFrom = require("../utils/getThreadFrom");
-const PAGE_LIMIT = 6;
+const { PAGE_LIMIT } = require("../utils/constants");
 
 /**
  * Description: Retrieves a list of threads based on the page and search parameters
@@ -64,12 +65,13 @@ module.exports = async (req, res) => {
 };
 
 /**
- * We need the expanded thread view to but search does not support views
+ * We need the expanded thread view. Search does not support views
  * so we enrich the results ourselves with the same "messages" key
  */
 function expandThreads({ nylas, threads }) {
-  return Promise.all(
-    threads.map(async thread => {
+  return Promise.map(
+    threads,
+    async thread => {
       const messages = await nylas.messages.list({
         thread_id: thread.id
       });
@@ -77,8 +79,10 @@ function expandThreads({ nylas, threads }) {
       thread.messages = messages;
 
       return thread;
-    })
+    },
+    { concurrency: 5 }
   );
+  // limit to 5 calls at a time to stay under the rate limit
 }
 
 function simplifyThread(thread) {

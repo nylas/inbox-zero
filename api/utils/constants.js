@@ -15,4 +15,6 @@ const DEFAULT_LABELS = [
   "important"
 ];
 
-module.exports = { DEFAULT_LABELS };
+const PAGE_LIMIT = 6;
+
+module.exports = { DEFAULT_LABELS, PAGE_LIMIT };
