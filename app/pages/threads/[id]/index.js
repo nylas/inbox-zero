@@ -94,18 +94,15 @@ export default function ThreadPage({
 
   async function sendReply(event) {
     event.preventDefault();
-
     replyDispatch({ type: "submitting" });
 
     const fields = reply.fields;
-
     const toEmails = inputToEmails(fields.to);
     const ccEmails = inputToEmails(fields.cc);
     const bccEmails = inputToEmails(fields.bcc);
     const allEmails = [...toEmails, ...ccEmails, ...bccEmails];
 
     const invalidEmail = allEmails.find(({ email }) => !email.includes("@"));
-
     if (invalidEmail) {
       return alert(`${invalidEmail} is not a valid email.`);
     }

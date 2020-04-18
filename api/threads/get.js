@@ -48,7 +48,7 @@ module.exports = async (req, res) => {
         }));
 
     threads = threads.map(thread => {
-      thread.from = getThreadFrom({ thread, account: req.account });
+      thread.from = getThreadFrom(thread);
       return thread;
     });
 
