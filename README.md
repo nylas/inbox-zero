@@ -50,7 +50,7 @@ export NYLAS_SECRET=your-nylas-secret
 
 #### Starting your app
 
-Finally, run `npm run local` and navigate to [http://localhost:3000](http://localhost:3000). Or if you are using glitch visit your live Glitch app. You should now see Inbox Zero!
+Finally, run `npm run local` and navigate to [http://localhost:3000](http://localhost:3000). Or if you are using Glitch, visit your live Glitch app. You should now see Inbox Zero!
 
 #### Production build
 
