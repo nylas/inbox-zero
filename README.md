@@ -3,18 +3,18 @@
 
 ![Logo](./logo.svg)
 
-Automate Your Way to Inbox Zero With Nylas
+**Automate Your Way to Inbox Zero With Nylas**
+A demo inbox built using the Nylas API
+
 <br />
 
 </div>
 
-**This is a demo inbox built using the Nylas API.**
-
-## Getting started
+## Getting Started
 
 To get started, you can run the app locally, or as Glitch app.
 
-#### Installing locally
+#### Installing Locally
 
 **Note:** You must have node 10 or higher installed to run this app.
 
@@ -32,13 +32,13 @@ cd inbox-zero && npm install
 
 #### Remix on Glitch
 
-Click the "Remix on Glitch" button to get started.
+[Glitch](https://glitch.com/) is a community coding platform that allows you to build fast, full-stack web apps in your browser for free. Click the "Remix on Glitch" button to get started.
 
 [![Remix on Glitch](https://cdn.glitch.com/2703baf2-b643-4da7-ab91-7ee2a2d00b5b%2Fremix-button.svg)](https://glitch.com/edit/#!/import/github/Nylas/inbox-zero?NYLAS_ID=&var2=NYLAS_SECRET)
 
 #### Configuration
 
-Now you need to configure the app to use your Nylas Client ID and Client secret. You can find these on the [application dashboard](https://dashboard.nylas.com/applications). Don't have a Nylas account yet? [Try it free](https://dashboard.nylas.com/register)
+Next, you'll need to configure the app to use your Nylas Client ID and Client secret. You can find these on the [application dashboard](https://dashboard.nylas.com/applications). Don't have a Nylas account yet? [Try it free](https://dashboard.nylas.com/register)
 
 Create a `.env` file with the following content:
 
@@ -49,7 +49,7 @@ export NYLAS_SECRET=your-nylas-secret
 
 #### Starting your app
 
-Finally, run `npm run local` and navigate to [http://localhost:3000](http://localhost:3000) or visit your glitch app. You should now see Inbox Zero!
+Finally, run `npm run local` and navigate to [http://localhost:3000](http://localhost:3000). Or if you are using glitch visit your live Glitch app. You should now see Inbox Zero!
 
 #### Production build
 
