@@ -4,9 +4,13 @@
   "description": "Automate Your Way to Inbox Zero With Nylas",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon --watch ./api --watch server.js server.js",
+    "//1": "Run `npm run local` for local development",
+    "local": "nodemon --watch ./api --watch server.js server.js",
+    "//2": "Glitch will run `npm run start`",
+    "start": "node server.js",
+    "//3": "For production run `npm run build` followed by `npm run prod`",
     "build": "next build",
-    "start": "NODE_ENV=production node server.js"
+    "prod": "NODE_ENV=production node server.js"
   },
   "husky": {
     "hooks": {
