@@ -4,6 +4,7 @@
 ![Logo](./logo.svg)
 
 **Automate Your Way to Inbox Zero With Nylas**
+
 A demo inbox built using the Nylas API
 
 <br />
