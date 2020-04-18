@@ -1,5 +1,8 @@
 import fetch from "isomorphic-unfetch";
 
+/**
+ * A simple wrapper for API requests
+ */
 export default async function request(
   endpoint,
   { body, context, ...customConfig } = {}
@@ -23,12 +26,24 @@ export default async function request(
 
   const url = endpoint.startsWith("http")
     ? endpoint
-    : `${process.env.API_URL}${endpoint}`;
+    : `${getOrigin(context)}/api/${endpoint}`;
   const response = await fetch(url, config);
   const data = await response.json();
   if (response.ok) {
     return data;
   } else {
     return Promise.reject(data);
+  }
+}
+
+/**
+ * Gets the origin from the request if we are on the server,
+ * or the window if we in the browser.
+ */
+function getOrigin(context) {
+  if (context) {
+    return context.req.protocol + "://" + context.req.get("host");
+  } else {
+    return window.location.origin;
   }
 }

@@ -1,8 +1,10 @@
+/**
+ * Utility to redirect from both the server and client
+ */
 export default function redirect(location, { context } = {}) {
   if (context) {
-    context.res.writeHead(302, { Location: location });
-    return context.res.end();
+    context.res.redirect(location);
   } else {
-    return (window.location.href = location);
+    window.location.href = location;
   }
 }

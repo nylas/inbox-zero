@@ -1,6 +1,11 @@
 import request from "./request";
 import redirect from "./redirect";
 
+/**
+ * A wrapper function that ensures that the visitor is authenticated
+ * when visiting a wrapped page, and adds their account information to
+ * context.
+ */
 export default function withAuth(
   handler = () => {
     return {
@@ -17,6 +22,8 @@ export default function withAuth(
     } catch (e) {
       // if our authentication check failed, then log the user out
       redirect("/api/logout", { context });
+
+      return { props: {} };
     }
   };
 }

@@ -1,3 +1,10 @@
+/**
+ * Watches the given element and when it is removed from the dom,
+ * runs the callback.
+ *
+ * This is used to refresh the "schedulerPages" list when the scheduler
+ * modal is closed.
+ */
 export default function onRemove(element, callback) {
   const parent = element.parentNode;
   if (!parent) throw new Error("The node must already be attached");

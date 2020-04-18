@@ -10,13 +10,15 @@ const Nylas = require("./utils/nylas");
 module.exports = async (req, res) => {
   try {
     const accessToken = req.cookies.accessToken;
-    const nylas = Nylas.with(accessToken);
-    const account = await nylas.account.get();
+    if (accessToken) {
+      const nylas = Nylas.with(accessToken);
+      const account = await nylas.account.get();
 
-    if (account) {
-      // get top-level nylas account and revoke our access
-      const account = await Nylas.accounts.find(account.id);
-      await account.revokeAll();
+      if (account) {
+        // get top-level nylas account and revoke our access
+        const fullAccount = await Nylas.accounts.find(account.id);
+        await fullAccount.revokeAll();
+      }
     }
   } catch (error) {
     console.log(error);
