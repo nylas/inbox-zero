@@ -18,10 +18,6 @@ const { PAGE_LIMIT } = require("../utils/constants");
  *   }
  * ]
  */
-/**
- * Retrieves a list of threads that belong to the current user which
- * match the given parameters.
- */
 module.exports = async (req, res) => {
   try {
     const page = req.query.page >= 1 ? req.query.page : 1;
