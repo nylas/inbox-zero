@@ -13,7 +13,7 @@ A demo inbox built using the Nylas API
 
 ## Getting Started
 
-To get started, you can run the app locally, or as Glitch app.
+To get started, you can run the app locally or remix it as a Glitch app.
 
 #### Installing Locally
 
