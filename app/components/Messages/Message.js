@@ -1,6 +1,6 @@
 import { Fragment } from "react";
-import Link from "next/link";
 import PropTypes from "prop-types";
+import Link from "next/link";
 import classnames from "classnames";
 import styles from "./Messages.module.css";
 import attachment from "../../assets/attachment.svg";
@@ -16,9 +16,9 @@ function Message({
   body,
   hasAttachments = false,
   files,
-  // added by parent
+  // Injected by parent
   isOpen = false,
-  handleClick
+  onClick
 }) {
   return (
     <Fragment>
@@ -27,7 +27,7 @@ function Message({
           styles.Message,
           styles[isOpen ? "isOpen" : "isClosed"]
         )}
-        onClick={handleClick}
+        onClick={onClick}
       >
         <span className={classnames(styles.Message__iconCell)}>
           <span className={styles.Message__icon}>
@@ -49,19 +49,17 @@ function Message({
           {formatDate(new Date(date))}
         </span>
       </a>
-      {isOpen ? (
+      {isOpen && (
         <div className={styles.MessageContents}>
           <Frame content={body} />
           {hasAttachments && (
             <div className={styles.AttachmentWrapper}>
               {files.map(file => (
-                <Attachment {...file} />
+                <Attachment key={file.id} {...file} />
               ))}
             </div>
           )}
         </div>
-      ) : (
-        ""
       )}
     </Fragment>
   );
@@ -72,7 +70,9 @@ Message.propTypes = {
   fromName: PropTypes.string.isRequired,
   fromEmailAddress: PropTypes.string.isRequired,
   date: PropTypes.string.isRequired,
-  hasAttachments: PropTypes.bool
+  body: PropTypes.string.isRequired,
+  hasAttachments: PropTypes.bool,
+  files: PropTypes.array
 };
 
 export default Message;

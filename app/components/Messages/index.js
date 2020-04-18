@@ -4,6 +4,9 @@ import styles from "./Messages.module.css";
 import Message from "./Message";
 import classnames from "classnames";
 
+/**
+ * Accordion-like list for displaying all the messages in a thread
+ */
 function Messages({ children, divideTop }) {
   const [index, setIndex] = useState(0);
 
@@ -17,11 +20,12 @@ function Messages({ children, divideTop }) {
         [styles.divideTop]: divideTop
       })}
     >
-      {React.Children.map(children, (child, i) =>
+      {/** Map children with additional properties: isOpen and onClick */
+      React.Children.map(children, (child, i) =>
         React.cloneElement(child, {
           ...child.props,
           isOpen: i === index,
-          handleClick: () => {
+          onClick: () => {
             setIndex(i);
           }
         })

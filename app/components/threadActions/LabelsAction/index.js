@@ -1,4 +1,5 @@
 import { Fragment, useState, useRef, useEffect } from "react";
+import PropTypes from "prop-types";
 import NProgress from "nprogress";
 import styles from "./LabelsAction.module.css";
 import { Action, Slot } from "../../Actions";
@@ -12,7 +13,10 @@ import schedulePageIcon from "../../../assets/schedule_page.svg";
 import useScript from "../../../utils/useScript";
 import onRemove from "../../../utils/onRemove";
 
-export default function LabelsAction({ thread, onAdd, onRemove, onCreate }) {
+/**
+ * Action components to add, remove, and create labels
+ */
+function LabelsAction({ thread, onAdd, onRemove, onCreate }) {
   const [showLabels, setShowLabels] = useState(false);
 
   async function updateThread(update) {
@@ -32,35 +36,21 @@ export default function LabelsAction({ thread, onAdd, onRemove, onCreate }) {
   async function addLabel(newLabel) {
     await updateThread({
       labels: thread.labels.map(label => {
-        if (newLabel.id === label.id) {
-          return {
-            ...label,
-            checked: true
-          };
-        }
-
-        return label;
+        return newLabel.id === label.id ? { ...label, checked: true } : label;
       })
     });
 
-    onAdd(newLabel);
+    onAdd({ ...newLabel, checked: true });
   }
 
   async function removeLabel(oldLabel) {
     await updateThread({
       labels: thread.labels.map(label => {
-        if (oldLabel.id === label.id) {
-          return {
-            ...label,
-            checked: false
-          };
-        }
-
-        return label;
+        return oldLabel.id === label.id ? { ...label, checked: false } : label;
       })
     });
 
-    onRemove(oldLabel);
+    onRemove({ ...oldLabel, checked: false });
   }
 
   async function createLabel(displayName) {
@@ -84,22 +74,63 @@ export default function LabelsAction({ thread, onAdd, onRemove, onCreate }) {
       </Action>
       {showLabels && (
         <Slot>
-          <Labels
-            labels={thread.labels}
-            addLabel={addLabel}
-            removeLabel={removeLabel}
-            createLabel={createLabel}
-          />
+          <Labels>
+            {thread.labels.map(label => (
+              <Label
+                key={label.id}
+                {...label}
+                onClick={() => {
+                  if (label.checked) {
+                    removeLabel(label);
+                  } else {
+                    addLabel(label);
+                  }
+                }}
+              />
+            ))}
+            <CreateLabelForm createLabel={createLabel} />
+          </Labels>
         </Slot>
       )}
     </Fragment>
   );
 }
 
-function Labels({ labels, addLabel, removeLabel, createLabel }) {
-  const labelInputRef = useRef(null);
+LabelsAction.propTypes = {
+  thread: PropTypes.object.isRequired,
+  onAdd: PropTypes.func.isRequired,
+  onRemove: PropTypes.func.isRequired,
+  onCreate: PropTypes.func.isRequired
+};
+
+function Labels({ children }) {
+  return <ul className={styles.Labels}>{children}</ul>;
+}
+
+function Label({ id, displayName, checked, onClick }) {
+  return (
+    <li className={styles.Label} key={id}>
+      <button className={styles.Label__button} onClick={onClick}>
+        <span className={styles.Label__icon}>
+          <img src={checked ? checkboxCheckedIcon : checkboxUncheckedIcon} />
+        </span>
+        <span>{displayName}</span>
+      </button>
+    </li>
+  );
+}
+
+function CreateLabelForm({ createLabel }) {
   const [labelInput, setLabelInput] = useState("");
   const [showCreateLabelForm, setShowCreateLabelForm] = useState(false);
+  const labelInputRef = useRef(null);
+
+  /** Focus input when form is shown */
+  useEffect(() => {
+    if (showCreateLabelForm) {
+      labelInputRef.current.focus();
+    }
+  }, [showCreateLabelForm]);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -108,38 +139,9 @@ function Labels({ labels, addLabel, removeLabel, createLabel }) {
     setShowCreateLabelForm(false);
   }
 
-  useEffect(() => {
-    if (showCreateLabelForm) {
-      labelInputRef.current.focus();
-    }
-  }, [showCreateLabelForm]);
-
   return (
-    <ul className={styles.Labels}>
-      {labels.map(label => (
-        <li className={styles.Label} key={label.id}>
-          <button
-            className={styles.Label__button}
-            onClick={() => {
-              if (label.checked) {
-                removeLabel(label);
-              } else {
-                addLabel(label);
-              }
-            }}
-          >
-            <span className={styles.Label__icon}>
-              <img
-                src={
-                  label.checked ? checkboxCheckedIcon : checkboxUncheckedIcon
-                }
-              />
-            </span>
-            <span>{label.displayName}</span>
-          </button>
-        </li>
-      ))}
-      {showCreateLabelForm ? (
+    <Fragment>
+      {showCreateLabelForm && (
         <li className={styles.CreateLabelInputWrapper}>
           <span className={styles.Label__icon}>
             <img src={checkboxUncheckedIcon} />
@@ -151,8 +153,6 @@ function Labels({ labels, addLabel, removeLabel, createLabel }) {
             />
           </form>
         </li>
-      ) : (
-        ""
       )}
       <li>
         <button
@@ -167,6 +167,8 @@ function Labels({ labels, addLabel, removeLabel, createLabel }) {
           Create List
         </button>
       </li>
-    </ul>
+    </Fragment>
   );
 }
+
+export default LabelsAction;

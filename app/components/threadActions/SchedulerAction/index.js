@@ -1,23 +1,52 @@
 import { Fragment, useState } from "react";
+import PropTypes from "prop-types";
 import styles from "./SchedulerAction.module.css";
 import { Action, Slot } from "../../Actions";
-import request from "../../../utils/request";
 import calendarIcon from "../../../assets/calendar.svg";
 import schedulePageIcon from "../../../assets/schedule_page.svg";
+import request from "../../../utils/request";
 import useScript from "../../../utils/useScript";
 import onRemove from "../../../utils/onRemove";
 
-export default function SchedulerAction({
+const schedulerConfig = {
+  style: {
+    tintColor: "#32325d",
+    backgroundColor: "white"
+  },
+  defaults: {
+    event: {
+      title: "30-min Coffee Meeting",
+      duration: 30
+    }
+  }
+};
+
+/**
+ * Action components to manage scheduler pages and quick-start a reply with a
+ * scheduler link.
+ */
+function SchedulerAction({
   accessToken,
-  schedulerPages: serverSchedulerPages,
+  schedulerPages: defaultSchedulerPages,
   onSchedule
 }) {
+  /** Load Nylas Scheduler */
   useScript(
     "https://schedule.nylas.com/schedule-editor/v1.0/schedule-editor.js"
   );
 
   const [showSchedulerPages, setShowSchedulerPages] = useState(false);
-  const [schedulerPages, setSchedulerPages] = useState(serverSchedulerPages);
+  const [schedulerPages, setSchedulerPages] = useState(defaultSchedulerPages);
+  const refreshSchedulerPages = async () => {
+    const newSchedulerPages = await request(
+      "https://schedule.api.nylas.com/manage/pages",
+      {
+        headers: { Authorization: `Bearer ${accessToken}` }
+      }
+    );
+
+    setSchedulerPages(newSchedulerPages);
+  };
 
   return (
     <Fragment>
@@ -29,11 +58,11 @@ export default function SchedulerAction({
       >
         Schedule Meeting »
       </Action>
-      {showSchedulerPages ? (
+      {showSchedulerPages && (
         <Slot>
           <ul className={styles.SchedulePages}>
             {schedulerPages.map(page => (
-              <li className={styles.SchedulePage} key={page.slug}>
+              <li key={page.slug} className={styles.SchedulePage}>
                 <span className={styles.SchedulePage__icon}>
                   <img src={schedulePageIcon} />
                 </span>
@@ -61,34 +90,17 @@ export default function SchedulerAction({
                 className={styles.ScheduleEditorButton}
                 onClick={() => {
                   nylas.scheduler.show({
-                    auth: {
-                      accessToken: accessToken
-                    },
-                    style: {
-                      // Style the schedule editor
-                      tintColor: "#32325d",
-                      backgroundColor: "white"
-                    },
-                    defaults: {
-                      event: {
-                        title: "30-min Coffee Meeting",
-                        duration: 30
-                      }
-                    }
+                    auth: { accessToken },
+                    ...schedulerConfig
                   });
 
+                  /**
+                   * When the Nylas Scheduler is hidden, refresh
+                   * the list of scheduler pages
+                   */
                   onRemove(
                     document.querySelector(".nylas-backdrop"),
-                    async () => {
-                      const newSchedulerPages = await fetch(
-                        "https://schedule.api.nylas.com/manage/pages",
-                        {
-                          headers: { Authorization: `Bearer ${accessToken}` }
-                        }
-                      ).then(response => response.json());
-
-                      setSchedulerPages(newSchedulerPages);
-                    }
+                    refreshSchedulerPages
                   );
                 }}
               >
@@ -97,9 +109,15 @@ export default function SchedulerAction({
             </li>
           </ul>
         </Slot>
-      ) : (
-        ""
       )}
     </Fragment>
   );
 }
+
+SchedulerAction.propTypes = {
+  accessToken: PropTypes.string.isRequired,
+  schedulerPages: PropTypes.array.isRequired,
+  onSchedule: PropTypes.func.isRequired
+};
+
+export default SchedulerAction;

@@ -1,21 +1,31 @@
 import { Fragment, useRef } from "react";
+import NProgress from "nprogress";
+import PropTypes from "prop-types";
 import { Action } from "../../Actions";
 import Attachment from "../../Attachment";
 import addAttachmentIcon from "../../../assets/add_attachment.svg";
 import removeIcon from "../../../assets/remove.svg";
 import request from "../../../utils/request";
-import NProgress from "nprogress";
 
-export default function AttachmentsAction({ files, onUpload, onDelete }) {
+/**
+ * Action components to upload, download, and delete attachments
+ */
+function AttachmentsAction({ files, onUpload, onDelete }) {
   return (
     <Fragment>
       <UploadAction onUpload={onUpload} />
       {files.map(file => (
-        <FileAction onDelete={onDelete} file={file} />
+        <FileAction key={file.id} onDelete={onDelete} file={file} />
       ))}
     </Fragment>
   );
 }
+
+AttachmentsAction.propTypes = {
+  files: PropTypes.array.isRequired,
+  onUpload: PropTypes.func.isRequired,
+  onDelete: PropTypes.func.isRequired
+};
 
 function UploadAction({ onUpload }) {
   const fileInputRef = useRef(null);
@@ -76,3 +86,5 @@ function FileAction({ onDelete, file }) {
     </Action>
   );
 }
+
+export default AttachmentsAction;

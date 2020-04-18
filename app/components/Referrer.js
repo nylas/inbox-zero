@@ -3,7 +3,11 @@ import React, { useState, useEffect, useContext } from "react";
 
 const ReferrerContext = React.createContext(null);
 
-export default function Provider(props) {
+/**
+ * React hook and context which retrieves the page that the visitor
+ * came from to get to the current pages
+ */
+function Provider(props) {
   const [referrer, setReferrer] = useState(null);
   useEffect(() => {
     setReferrer(document.referrer || null);
@@ -21,6 +25,9 @@ export default function Provider(props) {
   return <ReferrerContext.Provider {...props} value={referrer} />;
 }
 
-export function useReferrer() {
+function useReferrer() {
   return useContext(ReferrerContext);
 }
+
+export default Provider;
+export { useReferrer };

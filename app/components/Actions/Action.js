@@ -1,3 +1,4 @@
+import PropTypes from "prop-types";
 import styles from "./Actions.module.css";
 
 function Action({ disabled, icon, onClick, onClickIcon = null, children }) {
@@ -16,5 +17,12 @@ function Action({ disabled, icon, onClick, onClickIcon = null, children }) {
     </li>
   );
 }
+
+Action.propTypes = {
+  disabled: PropTypes.bool,
+  icon: PropTypes.string.isRequired,
+  onClick: PropTypes.func,
+  onClickIcon: PropTypes.func
+};
 
 export default Action;
