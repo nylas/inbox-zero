@@ -1,2 +1,2 @@
-export NYLAS_ID=
-export NYLAS_SECRET=
+NYLAS_ID=
+NYLAS_SECRET=
