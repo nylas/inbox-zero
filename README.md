@@ -44,9 +44,11 @@ Next, you'll need to configure the app to use your Nylas Client ID and Client se
 Create a `.env` file with the following content:
 
 ```sh
-export NYLAS_ID=your-client-id
-export NYLAS_SECRET=your-nylas-secret
+NYLAS_ID=your-client-id
+NYLAS_SECRET=your-nylas-secret
 ```
+
+You need to add a callback URL to your nylas aplication settings. If you are running locally, add `http://localhost:3000/api/authorize`. If you are using Glitch, add `https://your-glitch-url.glitch.me/api/authorize`
 
 #### Starting your app
 

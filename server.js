@@ -8,6 +8,7 @@
  *
  * Learn more: https://github.com/nylas/inbox-zero
  */
+require("dotenv").config();
 
 const express = require("express");
 const next = require("next");
