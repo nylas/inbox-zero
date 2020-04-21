@@ -1,7 +1,7 @@
 <div align="center">
   <br />
 
-![Logo](./logo.svg)
+![Logo](https://github.com/nylas/inbox-zero/blob/master/logo.svg)
 
 **Automate Your Way to Inbox Zero With Nylas**
 
@@ -13,7 +13,7 @@ A demo inbox built using the Nylas API
 
 ## Getting Started
 
-To get started, you can run the app locally, or as Glitch app.
+To get started, you can run the app locally or remix it as a Glitch app.
 
 #### Installing Locally
 
@@ -52,7 +52,7 @@ You need to add a callback URL to your nylas aplication settings. If you are run
 
 #### Starting your app
 
-Finally, run `npm run local` and navigate to [http://localhost:3000](http://localhost:3000). Or if you are using glitch visit your live Glitch app. You should now see Inbox Zero!
+Finally, run `npm run local` and navigate to [http://localhost:3000](http://localhost:3000). Or if you are using Glitch, visit your live Glitch app. You should now see Inbox Zero!
 
 #### Production build
 
