@@ -35,7 +35,12 @@ module.exports = async (req, res) => {
     let threads = await (search.length > 0
       ? expandThreads({
           nylas: req.nylas,
-          threads: await req.nylas.threads.search(search, { ...pagination })
+          threads: await req.nylas.threads.search(
+            req.account.organizationUnit === "label"
+              ? `in:inbox is:unread ${search}`
+              : search,
+            { ...pagination }
+          )
         })
       : req.nylas.threads.list({
           in: "inbox",
