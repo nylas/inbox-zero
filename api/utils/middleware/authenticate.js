@@ -1,4 +1,6 @@
+const jwt = require("jsonwebtoken");
 const Nylas = require("../nylas");
+const cache = require("../cache");
 
 /**
  * Express.js middleware to authenticate the account and pass through
@@ -9,7 +11,9 @@ const Nylas = require("../nylas");
  */
 module.exports = async function authenticate(req, res, next) {
   try {
-    const accessToken = req.cookies.accessToken;
+    const token = req.cookies.token;
+    const { emailAddress } = jwt.verify(token, process.env.JWT_SECRET);
+    const accessToken = await cache.get(emailAddress);
     req.nylas = Nylas.with(accessToken);
     req.account = await req.nylas.account.get();
     req.account.accessToken = accessToken;

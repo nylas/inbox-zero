@@ -35,7 +35,7 @@ cd inbox-zero && npm install
 
 [Glitch](https://glitch.com/) is a community coding platform that allows you to build fast, full-stack web apps in your browser for free. Click the "Remix on Glitch" button to get started.
 
-[![Remix on Glitch](https://cdn.glitch.com/2703baf2-b643-4da7-ab91-7ee2a2d00b5b%2Fremix-button.svg)](https://glitch.com/edit/#!/import/github/Nylas/inbox-zero?NYLAS_ID&NYLAS_SECRET)
+[![Remix on Glitch](https://cdn.glitch.com/2703baf2-b643-4da7-ab91-7ee2a2d00b5b%2Fremix-button.svg)](https://glitch.com/edit/#!/import/github/Nylas/inbox-zero?NYLAS_ID&NYLAS_SECRET&JWT_SECRET)
 
 #### Configuration
 
@@ -46,6 +46,7 @@ Create a `.env` file with the following content:
 ```sh
 NYLAS_ID=your-client-id
 NYLAS_SECRET=your-nylas-secret
+JWT_SECRET=any-random-string
 ```
 
 You need to add a callback URL to your nylas aplication settings. If you are running locally, add `http://localhost:3000/api/authorize`. If you are using Glitch, add `https://your-glitch-url.glitch.me/api/authorize`

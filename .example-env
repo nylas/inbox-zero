@@ -1,2 +1,3 @@
 NYLAS_ID=
 NYLAS_SECRET=
+JWT_SECRET= # this can be any random string

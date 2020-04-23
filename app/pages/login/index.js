@@ -7,7 +7,7 @@ import redirect from "../../utils/redirect";
 import styles from "./login.module.css";
 
 export function getServerSideProps(context) {
-  if (context.req.cookies.accessToken) {
+  if (context.req.cookies.token) {
     redirect("/", { context });
   }
 

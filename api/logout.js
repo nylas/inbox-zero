@@ -1,4 +1,6 @@
+const jwt = require("jsonwebtoken");
 const Nylas = require("./utils/nylas");
+const cache = require("./utils/cache");
 
 /**
  * Description: Revokes the access token for the current user and
@@ -9,7 +11,9 @@ const Nylas = require("./utils/nylas");
  */
 module.exports = async (req, res) => {
   try {
-    const accessToken = req.cookies.accessToken;
+    const token = req.cookies.token;
+    const { emailAddress } = jwt.verify(token, process.env.JWT_SECRET);
+    const accessToken = await cache.get(emailAddress);
     if (accessToken) {
       const nylas = Nylas.with(accessToken);
       const account = await nylas.account.get();
@@ -25,6 +29,6 @@ module.exports = async (req, res) => {
   }
 
   // delete the token cookie
-  res.clearCookie("accessToken", { path: "/" });
+  res.clearCookie("token", { path: "/" });
   return res.redirect("/login");
 };
