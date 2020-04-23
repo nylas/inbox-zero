@@ -74,3 +74,5 @@ npm run prod
 - [Nylas](https://www.nylas.com/) - The Leading Platform for Email, Calendar, and Contacts
 - [Next.js](https://nextjs.org/) - A React framework
 - [Express.js](https://expressjs.com/) - A Node.js framework
+- [JSON Web Tokens](https://jwt.io/) - Signed Tokens
+- [lowdb](https://github.com/typicode/lowdb) - JSON database powered by Lodash
