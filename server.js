@@ -56,7 +56,7 @@ app.prepare().then(() => {
     server.use("*", (req, res) => {
       res.send(`
         <p>
-          Add your Nylas ID and Secret in the .env file to get started. <br>
+          Add your Nylas App ID and Secret in the .env file to get started. <br>
           Don't have a Nylas account? <a href="https://dashboard.nylas.com/register">Try it free »</a>
         </p>
         <style>
