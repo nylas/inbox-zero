@@ -60,21 +60,10 @@ export default function ThreadPage({
       .join(",");
 
   const [thread, threadDispatch] = useReducer(threadReducer, serverThread);
-  const lastSentMessage = thread.messages[0];
-  const [reply, replyDispatch] = useReducer(replyReducer, {
-    isSubmitting: false,
-    isVisible: false,
-    fields: {
-      to: participantsToEmails([
-        ...lastSentMessage.to,
-        ...lastSentMessage.from
-      ]),
-      cc: participantsToEmails(lastSentMessage.cc),
-      bcc: participantsToEmails(lastSentMessage.bcc),
-      body: "",
-      files: []
-    }
-  });
+  const [reply, replyDispatch] = useReducer(
+    replyReducer,
+    generateReplyState(serverThread)
+  );
 
   const showReply = () => {
     NProgress.start();
@@ -88,9 +77,13 @@ export default function ThreadPage({
     NProgress.done();
   };
 
-  useEffect(() => threadDispatch({ type: "reset", thread: serverThread }), [
-    serverThread
-  ]);
+  useEffect(() => {
+    threadDispatch({ type: "reset", thread: serverThread });
+    replyDispatch({
+      type: "reset",
+      reply: generateReplyState(serverThread)
+    });
+  }, [serverThread]);
 
   async function sendReply(event) {
     event.preventDefault();
@@ -348,9 +341,30 @@ function replyReducer(state, action) {
           files: [...state.fields.files, action.file]
         }
       };
+    case "reset":
+      return action.reply;
     default:
       throw new Error();
   }
+}
+
+function generateReplyState(thread) {
+  const lastSentMessage = thread.messages[0];
+
+  return {
+    isSubmitting: false,
+    isVisible: false,
+    fields: {
+      to: participantsToEmails([
+        ...lastSentMessage.to,
+        ...lastSentMessage.from
+      ]),
+      cc: participantsToEmails(lastSentMessage.cc),
+      bcc: participantsToEmails(lastSentMessage.bcc),
+      body: "",
+      files: []
+    }
+  };
 }
 
 function inputToEmails(input) {
