@@ -3,7 +3,6 @@ import PropTypes from "prop-types";
 import styles from "./SchedulerAction.module.css";
 import { Action, Slot } from "../../Actions";
 import calendarIcon from "../../../assets/calendar.svg";
-import schedulePageIcon from "../../../assets/schedule_page.svg";
 import request from "../../../utils/request";
 import useScript from "../../../utils/useScript";
 import onRemove from "../../../utils/onRemove";
@@ -63,9 +62,6 @@ function SchedulerAction({
           <ul className={styles.SchedulePages}>
             {schedulerPages.map(page => (
               <li key={page.slug} className={styles.SchedulePage}>
-                <span className={styles.SchedulePage__icon}>
-                  <img src={schedulePageIcon} />
-                </span>
                 <span>
                   <button
                     className={styles.SchedulePage__button}

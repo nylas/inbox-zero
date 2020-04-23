@@ -159,6 +159,18 @@ export default function ThreadPage({
                   replyDispatch({ type: "deleteFile", file });
                 }}
               />
+              <SchedulerAction
+                accessToken={account.accessToken}
+                schedulerPages={schedulerPages}
+                onSchedule={page => {
+                  replyDispatch({
+                    type: "field",
+                    field: "body",
+                    value: `<a href="https://schedule.nylas.com/${page.slug}">${page.name}</a>`
+                  });
+                  showReply();
+                }}
+              />
             </Actions>
           </Fragment>
         )}
@@ -232,25 +244,27 @@ export default function ThreadPage({
             />
           ))}
         </Messages>
-        <Pagination
-          previous={
-            thread.previousThreadId
-              ? {
-                  href: `/threads/[id]`,
-                  as: `/threads/${thread.previousThreadId}`
-                }
-              : null
-          }
-          next={
-            thread.nextThreadId
-              ? {
-                  href: `/threads/[id]`,
-                  as: `/threads/${thread.nextThreadId}`
-                }
-              : null
-          }
-          variant="cursor"
-        />
+        {!reply.isVisible && (
+          <Pagination
+            previous={
+              thread.previousThreadId
+                ? {
+                    href: `/threads/[id]`,
+                    as: `/threads/${thread.previousThreadId}`
+                  }
+                : null
+            }
+            next={
+              thread.nextThreadId
+                ? {
+                    href: `/threads/[id]`,
+                    as: `/threads/${thread.nextThreadId}`
+                  }
+                : null
+            }
+            variant="cursor"
+          />
+        )}
       </Content>
     </Layout>
   );

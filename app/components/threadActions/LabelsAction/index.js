@@ -9,7 +9,6 @@ import checkIcon from "../../../assets/check.svg";
 import addIcon from "../../../assets/add.svg";
 import checkboxUncheckedIcon from "../../../assets/checkbox_unchecked.svg";
 import checkboxCheckedIcon from "../../../assets/checkbox_checked.svg";
-import schedulePageIcon from "../../../assets/schedule_page.svg";
 import useScript from "../../../utils/useScript";
 import onRemove from "../../../utils/onRemove";
 
@@ -70,7 +69,7 @@ function LabelsAction({ thread, onAdd, onRemove, onCreate }) {
   return (
     <Fragment>
       <Action icon={checkIcon} onClick={() => setShowLabels(!showLabels)}>
-        Add to ToDo List »
+        Add to List »
       </Action>
       {showLabels && (
         <Slot>
