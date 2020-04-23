@@ -53,16 +53,10 @@ export default function ThreadPage({
     return <NextError statusCode={errorCode} />;
   }
 
-  const participantsToEmails = participants =>
-    participants
-      .map(p => p.email)
-      .filter(email => email !== account.emailAddress)
-      .join(",");
-
   const [thread, threadDispatch] = useReducer(threadReducer, serverThread);
   const [reply, replyDispatch] = useReducer(
     replyReducer,
-    generateReplyState(serverThread)
+    generateReplyState({ thread: serverThread, account })
   );
 
   const showReply = () => {
@@ -81,7 +75,7 @@ export default function ThreadPage({
     threadDispatch({ type: "reset", thread: serverThread });
     replyDispatch({
       type: "reset",
-      reply: generateReplyState(serverThread)
+      reply: generateReplyState({ thread: serverThread, account })
     });
   }, [serverThread]);
 
@@ -348,8 +342,14 @@ function replyReducer(state, action) {
   }
 }
 
-function generateReplyState(thread) {
+function generateReplyState({ thread, account }) {
   const lastSentMessage = thread.messages[0];
+
+  const participantsToEmails = participants =>
+    participants
+      .map(p => p.email)
+      .filter(email => email !== account.emailAddress)
+      .join(",");
 
   return {
     isSubmitting: false,
