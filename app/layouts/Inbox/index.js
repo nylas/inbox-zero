@@ -1,6 +1,5 @@
 import Router from "next/router";
 import Link from "next/link";
-import md5 from "md5";
 import styles from "./InboxLayout.module.css";
 import Button from "../../components/Button";
 import nylasLogo from "../../assets/nylas.svg";
@@ -27,8 +26,6 @@ export function Sidebar({ children }) {
 }
 
 export function Header({ account }) {
-  const avatar = `https://www.gravatar.com/avatar/${md5(account.emailAddress)}`;
-
   return (
     <header className={styles.Header}>
       <Link href="/">
@@ -39,8 +36,9 @@ export function Header({ account }) {
         </a>
       </Link>
       <div className={styles.Header__profile}>
-        {account.emailAddress}
-        <img className={styles.Header__avatar} src={avatar} alt="avatar" />
+        <div className={styles.Header__emailAddress}>
+          {account.emailAddress}
+        </div>
         <Button variant="secondary" href="/api/logout" prefetch={false}>
           Log out
         </Button>
