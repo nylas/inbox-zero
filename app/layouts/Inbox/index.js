@@ -22,7 +22,14 @@ export function Content({ children }) {
 }
 
 export function Sidebar({ children }) {
-  return <aside className={styles.Sidebar}>{children}</aside>;
+  return (
+    <aside className={styles.Sidebar}>
+      <div className={styles.Sidebar__content}>{children}</div>
+      <a href="http://nylas.com/docs" className={styles.Sidebar__fixedLink}>
+        Learn more about Nylas »
+      </a>
+    </aside>
+  );
 }
 
 export function Header({ account }) {

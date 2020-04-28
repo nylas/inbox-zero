@@ -12,8 +12,23 @@
 
 .Sidebar {
   background: #eaeaea;
-  padding: 64px;
+  padding: 64px 64px 40px;
   overflow: scroll;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.Sidebar__content {
+}
+
+.Sidebar__fixedLink {
+  font: inherit;
+  color: inherit;
+  text-decoration: none;
+  font-weight: 600;
+  display: block;
+  margin-top: 40px;
 }
 
 .Header {
