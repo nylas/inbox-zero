@@ -25,7 +25,11 @@ export function Sidebar({ children }) {
   return (
     <aside className={styles.Sidebar}>
       <div className={styles.Sidebar__content}>{children}</div>
-      <a href="http://nylas.com/docs" className={styles.Sidebar__fixedLink}>
+      <a
+        href="http://nylas.com/docs"
+        target="_blank"
+        className={styles.Sidebar__fixedLink}
+      >
         Learn more about Nylas »
       </a>
     </aside>
