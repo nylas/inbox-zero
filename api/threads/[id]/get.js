@@ -38,14 +38,6 @@ const getThreadFrom = require("../../utils/getThreadFrom");
  *   snippet: String,
  *   hasAttachments: Boolean,
  *   unread: Boolean,
- *   senderUnread: Boolean,
- *   labels: [
- *     {
- *       id: String,
- *       displayName: String,
- *       checked: Boolean
- *     }
- *   ],
  *   previousThreadId: String|null,
  *   nextThreadId: String|null
  * }
@@ -58,7 +50,6 @@ module.exports = async (req, res) => {
   try {
     const thread = await nylas.threads.find(id, null, { view: "expanded" });
     const threadFrom = getThreadFrom(thread);
-    const senderUnread = await checkIfSenderUnread({ nylas, account, thread });
     const { previousThreadId, nextThreadId } = await getThreadPagination({
       nylas,
       thread
@@ -78,7 +69,6 @@ module.exports = async (req, res) => {
       snippet: thread.snippet,
       hasAttachments: thread.hasAttachments,
       unread: thread.unread,
-      senderUnread,
       labels,
       previousThreadId,
       nextThreadId
@@ -88,19 +78,6 @@ module.exports = async (req, res) => {
     res.status(500).json({ error: "Something went wrong. Please try again." });
   }
 };
-
-async function checkIfSenderUnread({ nylas, account, thread }) {
-  const threadFrom = getThreadFrom(thread);
-
-  const senderUnreadCount = await nylas.threads.count({
-    in: "inbox",
-    from: threadFrom.email,
-    unread: true,
-    limit: 1
-  });
-
-  return senderUnreadCount > 0;
-}
 
 async function getThreadPagination({ nylas, thread }) {
   const [previousThreadIds, nextThreadIds] = await Promise.all([

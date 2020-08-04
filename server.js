@@ -33,12 +33,10 @@ api.get("/logout", require("./api/logout"));
 
 /** account-level management */
 api.get("/account", authenticate, require("./api/account/get"));
-api.post("/labels", authenticate, require("./api/labels/create"));
 
 /** threads */
 api.get("/threads", authenticate, require("./api/threads/get"));
 api.get("/threads/:id", authenticate, require("./api/threads/[id]/get"));
-api.put("/threads/:id", authenticate, require("./api/threads/[id]/update"));
 api.post("/threads/:id", authenticate, require("./api/threads/[id]/reply"));
 
 /** files */

@@ -14,9 +14,6 @@ import Editor from "../../../components/Editor";
 import BackButton from "../../../components/BackButton";
 import Actions from "../../../components/Actions";
 import AttachmentsAction from "../../../components/threadActions/AttachmentsAction";
-import LabelsAction from "../../../components/threadActions/LabelsAction";
-import MarkReadAction from "../../../components/threadActions/MarkReadAction";
-import MarkSenderReadAction from "../../../components/threadActions/MarkSenderReadAction";
 import request from "../../../utils/request";
 import withAuth from "../../../utils/withAuth";
 
@@ -145,32 +142,6 @@ export default function ThreadPage({
           <Fragment>
             <BackButton />
             <Button onClick={() => showReply()}>Reply</Button>
-            <Actions>
-              <LabelsAction
-                thread={thread}
-                onAdd={label => {
-                  threadDispatch({ type: "addLabel", label });
-                }}
-                onRemove={label => {
-                  threadDispatch({ type: "removeLabel", label });
-                }}
-                onCreate={label => {
-                  threadDispatch({ type: "createLabel", label });
-                }}
-              />
-              <MarkReadAction
-                thread={thread}
-                onChange={({ unread }) => {
-                  threadDispatch({ type: "markRead" });
-                }}
-              />
-              <MarkSenderReadAction
-                thread={thread}
-                onChange={({ senderUnread }) => {
-                  threadDispatch({ type: "markSenderRead" });
-                }}
-              />
-            </Actions>
           </Fragment>
         )}
       </Sidebar>
