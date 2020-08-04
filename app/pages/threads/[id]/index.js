@@ -14,7 +14,6 @@ import Editor from "../../../components/Editor";
 import BackButton from "../../../components/BackButton";
 import Actions from "../../../components/Actions";
 import AttachmentsAction from "../../../components/threadActions/AttachmentsAction";
-import SchedulerAction from "../../../components/threadActions/SchedulerAction";
 import LabelsAction from "../../../components/threadActions/LabelsAction";
 import MarkReadAction from "../../../components/threadActions/MarkReadAction";
 import MarkSenderReadAction from "../../../components/threadActions/MarkSenderReadAction";
@@ -24,18 +23,11 @@ import withAuth from "../../../utils/withAuth";
 export const getServerSideProps = withAuth(async context => {
   try {
     const thread = await request(`/threads/${context.query.id}`, { context });
-    const schedulerPages = await request(
-      `https://schedule.api.nylas.com/manage/pages`,
-      {
-        headers: { Authorization: `Bearer ${context.account.accessToken}` }
-      }
-    );
 
     return {
       props: {
         account: context.account,
-        serverThread: thread,
-        schedulerPages
+        serverThread: thread
       }
     };
   } catch (e) {
@@ -146,18 +138,6 @@ export default function ThreadPage({
                   replyDispatch({ type: "deleteFile", file });
                 }}
               />
-              <SchedulerAction
-                accessToken={account.accessToken}
-                schedulerPages={schedulerPages}
-                onSchedule={page => {
-                  replyDispatch({
-                    type: "field",
-                    field: "body",
-                    value: `<a href="https://schedule.nylas.com/${page.slug}">${page.name}</a>`
-                  });
-                  showReply();
-                }}
-              />
             </Actions>
           </Fragment>
         )}
@@ -166,18 +146,6 @@ export default function ThreadPage({
             <BackButton />
             <Button onClick={() => showReply()}>Reply</Button>
             <Actions>
-              <SchedulerAction
-                accessToken={account.accessToken}
-                schedulerPages={schedulerPages}
-                onSchedule={page => {
-                  replyDispatch({
-                    type: "field",
-                    field: "body",
-                    value: `<a href="https://schedule.nylas.com/${page.slug}">${page.name}</a>`
-                  });
-                  showReply();
-                }}
-              />
               <LabelsAction
                 thread={thread}
                 onAdd={label => {
