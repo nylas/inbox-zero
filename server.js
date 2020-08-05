@@ -34,16 +34,6 @@ api.get("/logout", require("./api/logout"));
 /** account-level management */
 api.get("/account", authenticate, require("./api/account/get"));
 
-/** threads */
-api.get("/threads", authenticate, require("./api/threads/get"));
-api.get("/threads/:id", authenticate, require("./api/threads/[id]/get"));
-api.post("/threads/:id", authenticate, require("./api/threads/[id]/reply"));
-
-/** files */
-api.get("/files/:name", authenticate, require("./api/files/download"));
-api.delete("/files/:name", authenticate, require("./api/files/delete"));
-api.post("/files", authenticate, require("./api/files/upload"));
-
 app.prepare().then(() => {
   const server = express();
   server.use(cookieParser());
